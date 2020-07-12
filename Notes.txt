@@ -8,3 +8,5 @@
 
 ..*To make the code display be responsive, we made use of "navigator.userAgent" check within main.js, and based on the response from the check, we would load a different 'config' for the game. More documentaion can be found at:
 https://phasergames.com/phaser-3-snippets/phaser-3-starter-snippets/
+
+
