@@ -1,0 +1,7 @@
+## ScoreBox ##
+..*We created a custom way to emit events. This documentation after the fact on the implementation of ScoreBox and the subtools needed to get it working properly.
+
+
+## Align Grid ##
+..*This tool is needed because a very common problem is that with different devices, we don't know the game size and this can become problematic when laying out game components/objects.
+..*Layout in a grid can help us 'bootstrap this'
