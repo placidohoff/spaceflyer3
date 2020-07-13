@@ -37,7 +37,9 @@ window.onload = () => {
         }
     }
     G = new Constants();
+    emitter = new Phaser.Events.EventEmitter();
     model = new Model();
+    //emitter = new Phaser.Events.EventEmitter();
     //let us keep track if it is mobile or not to be used elswehere in code. (flatButton.js)
     model.isMobile = isMobile;
     game = new Phaser.Game(this.config);

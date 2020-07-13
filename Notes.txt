@@ -12,3 +12,8 @@ https://phasergames.com/phaser-3-snippets/phaser-3-starter-snippets/
 
 ## Text Button ##
 ..Quick and easy way to make buttons for our games. Button outline images and we just overlay text onto them
+
+## Media-Manager ##
+..Created a mediaManager util that responds to the emitter constants of PLAY_SOUND, and MUSIC_CHANGED. 
+..Also, in SceneMain, the buttons toggle whether or not the player wants sound working. (This is handled on the SceneMain emitter response function)
+    ..*Added a specific ToggleButton.js for this within 'ui/'
