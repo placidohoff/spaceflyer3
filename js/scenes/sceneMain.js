@@ -27,23 +27,11 @@ class SceneMain extends Phaser.Scene{
         emitter = new Phaser.Events.EventEmitter();
         controller = new Controller();
 
-        let mediaManager = new MediaManager({scene: this});
-        mediaManager.setBackgroundMusic('backgroundMusic')
+        // let mediaManager = new MediaManager({scene: this});
+        // mediaManager.setBackgroundMusic('backgroundMusic')
 
-        let button1Text = {color: 'black', fontSize: 20}
-        let flatButton = new FlatButton({scene: this, key: 'button1', text:'Click Me',  event:'button_pressed', params:'button1', textConfig: button1Text})
-        let flatButton2 = new FlatButton({scene: this, key: 'button2', text:'Click Me',  event:'button_pressed', params: 'button2'})
-
-        this.alignGrid = new AlignGrid({rows:11, cols:11, scene:this});
-        //this.alignGrid.showNumbers();
-        this.alignGrid.placeAtIndex(38, flatButton)
-        this.alignGrid.placeAtIndex(71, flatButton2)
-
-
-        //let toggleButton = new ToggleButton({scene:this, backKey:'toggleBack', onIcon:'sfxOn', offIcon:'sfxOff', event:"TOGGLE_SOUND", x:240, y:450})
-        let toggleButton2 = new ToggleButton({scene:this, backKey:'toggleBack', onIcon:'musicOn', offIcon:'musicOff', event:"TOGGLE_MUSIC", x:240, y:450})
-
-        emitter.on('button_pressed', this.buttonPressed, this)
+        let sb = new SoundButtons({scene: this});
+        
     }
     update(){
 

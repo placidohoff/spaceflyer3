@@ -41,6 +41,9 @@ class ToggleButton extends Phaser.GameObjects.Container{
             this.y = config.y
         }
 
+        //Containers do not have size until we set it
+        this.setSize(this.back.displayWidth, this.back.displayHeight);
+        
         this.scene.add.existing(this);
     }
     toggle(){
