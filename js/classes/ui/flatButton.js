@@ -12,6 +12,7 @@ class FlatButton extends Phaser.GameObjects.Container
         }
         super(config.scene);
 
+        this.x = this.y = 0;
         if(config.x){
             this.x = config.x;
         }
@@ -22,6 +23,7 @@ class FlatButton extends Phaser.GameObjects.Container
 
         this.scene = config.scene;
         this.back = this.scene.add.image(this.x,this.y,config.key);
+        this.add(this.back)
 
         
         if(config.text){
@@ -43,6 +45,21 @@ class FlatButton extends Phaser.GameObjects.Container
             this.back.setInteractive();
             this.back.on('pointerdown', this.pressed, this)
         }
+        //If is not on mobile, allow for roll over event for cursor roll over button:
+        if(model.isMobile == -1){
+            // this.back.on("pointerover", this.over, this);
+            // this.back.on("pointerout,", this.out, this)
+            //functionality not working properly
+        }
+    }
+    over()
+    {
+        this.y -= 5;
+        //this.y += 5;
+    }
+    out()
+    {
+        this.y += 5;
     }
     pressed()
     {

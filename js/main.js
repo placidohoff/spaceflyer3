@@ -21,7 +21,7 @@ window.onload = () => {
             height: 640,
             parent: 'phaser-game',
             backgroundColor: '000',
-            scene: [SceneMain]
+            scene: [SceneTitle,SceneMain,SceneOver]
         }
 
     }
@@ -33,11 +33,13 @@ window.onload = () => {
             height: window.innerHeight,
             parent: 'phaser-game',
             backgroundColor: '000',
-            scene: [SceneMain]
+            scene: [SceneTitle, SceneMain, SceneOver]
         }
     }
     G = new Constants();
     model = new Model();
+    //let us keep track if it is mobile or not to be used elswehere in code. (flatButton.js)
+    model.isMobile = isMobile;
     game = new Phaser.Game(this.config);
     //this.scene.add(sceneMain)
 }
