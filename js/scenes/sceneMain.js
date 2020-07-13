@@ -10,8 +10,8 @@ class SceneMain extends Phaser.Scene{
         this.load.audio('cat', ["audio/meow.mp3", "audo/meow.ogg"]);
         this.load.audio('backgroundMusic', ["audio/background.mp3", "audio/background.ogg"])
 
-        this.load.image("music_off", "assets/buttons/toggles/icons/music_off.png");
-        this.load.image("music_on", "assets/buttons/toggles/icons/music_on.png");
+        this.load.image("musicOff", "assets/buttons/toggles/icons/music_off.png");
+        this.load.image("musicOn", "assets/buttons/toggles/icons/music_on.png");
         this.load.image("sfxOff", "assets/buttons/toggles/icons/sfx_off.png");
         this.load.image("sfxOn", "assets/buttons/toggles/icons/sfx_on.png");
         
@@ -34,7 +34,14 @@ class SceneMain extends Phaser.Scene{
         let flatButton = new FlatButton({scene: this, key: 'button1', text:'Click Me',  event:'button_pressed', params:'button1', textConfig: button1Text})
         let flatButton2 = new FlatButton({scene: this, key: 'button2', text:'Click Me',  event:'button_pressed', params: 'button2'})
 
-        let toggleButton = new ToggleButton({scene:this, backKey:'toggleBack', onIcon:'sfxOn', offIcon:'sfxOff', event:"TOGGLE_SOUND", x:240, y:450})
+        this.alignGrid = new AlignGrid({rows:11, cols:11, scene:this});
+        //this.alignGrid.showNumbers();
+        this.alignGrid.placeAtIndex(38, flatButton)
+        this.alignGrid.placeAtIndex(71, flatButton2)
+
+
+        //let toggleButton = new ToggleButton({scene:this, backKey:'toggleBack', onIcon:'sfxOn', offIcon:'sfxOff', event:"TOGGLE_SOUND", x:240, y:450})
+        let toggleButton2 = new ToggleButton({scene:this, backKey:'toggleBack', onIcon:'musicOn', offIcon:'musicOff', event:"TOGGLE_MUSIC", x:240, y:450})
 
         emitter.on('button_pressed', this.buttonPressed, this)
     }
