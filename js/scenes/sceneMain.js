@@ -31,7 +31,8 @@ class SceneMain extends Phaser.Scene{
         // mediaManager.setBackgroundMusic('backgroundMusic')
 
         let sb = new SoundButtons({scene: this});
-        
+        let bar = new Bar({scene:this, x:240,y:320})
+        bar.setPercent(.5);
     }
     update(){
 
