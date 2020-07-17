@@ -20,8 +20,14 @@ window.onload = () => {
             width: 480,
             height: 640,
             parent: 'phaser-game',
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    debug: false
+                }
+            },
             backgroundColor: '000',
-            scene: [SceneLoad,SceneMain,SceneOver]
+            scene: [SceneLoad, SceneTitle, SceneMain,SceneOver]
         }
 
     }
@@ -32,8 +38,14 @@ window.onload = () => {
             width: window.innerWidth,
             height: window.innerHeight,
             parent: 'phaser-game',
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    debug: false
+                }
+            },
             backgroundColor: '000',
-            scene: [SceneLoad, SceneMain, SceneOver]
+            scene: [SceneLoad, SceneTitle, SceneMain, SceneOver]
         }
     }
     G = new Constants();
