@@ -12,6 +12,13 @@ class SceneMain extends Phaser.Scene{
 
         this.starfield = this.add.tileSprite(0, 160, game.width, game.height, 'starfield');
         this.starfield.setTilePosition(0,0)
+        this.starfield.setInteractive();
+        this.starfield.on('pointerdown', this.touch, this);
+
+        this.clocks = {
+            enemy0: 0,
+            playerFire: 0
+        };
 
         this.player = this.physics.add.sprite(400, 400, 'ship')
         //this.player.texture.baseTexture.scaleMode = PIXI.NEAREST;
@@ -21,8 +28,9 @@ class SceneMain extends Phaser.Scene{
         this.player.angle -= 90;
         this.player.nextFire = 0;
         this.player.fireRate = 500;
-        this.player.width = 50;
-        this.player.height = 50;
+        Align.scaleToGameW(this.player, .1)
+        //this.player.width = 200;
+        //this.player.height = 200;
         this.player.score = 0;
 
         this.player.weapon = 'basic';
@@ -30,23 +38,46 @@ class SceneMain extends Phaser.Scene{
         this.ability = 'none';
         this.player.isDead = false;
 
-        this.joyStick = this.plugins.get('rexvirtualjoystickplugin');
-        // let mediaManager = new MediaManager({scene: this});
-        // mediaManager.setBackgroundMusic('backgroundMusic')
+        this.groupPlayerLasers = this.physics.add.group();
 
-        //let sb = new SoundButtons({scene: this});
-        // this.pad = this.plugins.add(Phaser.VirtualJoystick);
-        // this.stick = pad.addStick(600, 300, 150, 'arcade');
-        // this.stick.alignBottomRight();
+        // this.joyStick = this.plugins.get('rexvirtualjoystickplugin');
+        
+        this.enemyLevel = 0;
 
-        this.starfield.setInteractive();
-        this.starfield.on('pointerdown', this.touch, this);
-        //this.tx = this.starfield.input.localX
-        //this.ty = this.starfield.input.localY
+
+        this.nextEnemy0 = 50;
+        this.groupEnemy0 = this.physics.add.group();
+
+        
+
+        this.enemy = new BasicEnemy0({scene:this, x:100, y: 200, screenWidth: game.config.width, screenHeight: game.config.height})
+        this.groupEnemy0.add(this.enemy);
     }
     update(){
-        //this.starfield.tilePositionY += 2;
+        this.starfield.tilePositionY -= 2;
+
+        this.groupEnemy0.children.iterate(function(child){
+            child.update();
+            //if(Collision.checkCollide(child,))
+        })
+
+        this.groupPlayerLasers.children.iterate(function(child){
+            child.y -= 5;
+            if(child.y <= 10){
+                //child.destroy();
+                //child.setActive(false)
+                //child.setVisible(false)
+                //alert('hello')
+                child
+            }
+        })
+        
+        this.updateClocks();
         this.boundsCheck();
+        this.spawnEnemy();
+        this.fireWeapon();
+        this.checkCollisions();
+        //this.updateLasers();
     }
     buttonPressed(params){
         model._musicOn ? model._musicOn = false : model._musicOn = true
@@ -79,5 +110,53 @@ class SceneMain extends Phaser.Scene{
         else if(this.player.y >= game.config.height){
             this.player.y -= 10;
         }
+    }
+    spawnEnemy(){
+        if(this.clocks.enemy0 > this.nextEnemy0){
+            //this.lastEnemy = 0;
+            console.log("Hello")
+            this.clocks.enemy0 = 0;
+            
+            return;
+        }
+
+    }
+    updateClocks(){
+        //this.clock++;
+        this.clocks.enemy0++;
+        this.clocks.playerFire++;
+    }
+    fireWeapon(){
+        if(this.clocks.playerFire > 20){
+            this.clocks.playerFire = 0;
+            this.playerLaser = this.physics.add.sprite(this.player.x + 15, this.player.y, 'laser');
+            this.playerLaser.angle = this.player.angle;
+
+            this.groupPlayerLasers.add(this.playerLaser);
+
+        }
+    }
+    checkCollisions(){
+        this.physics.add.collider(this.groupPlayerLasers, this.groupEnemy0, this.enemyHit);
+    }
+    enemyHit(x, y){
+        //console.log(x)
+        //x.destroy();
+        //alert('Yo');
+        //console.log('Hit!')
+
+        //Itterate through each child of eneyGroup and check which one is collided. Destroy that one.
+        
+
+        // this.groupPlayerLasers.children.iterate(function(laser){
+            
+        //     this.groupEnemy0.children.iterate(function(enemy){
+        //         if(Collision.checkCollide(laser, enemy)){
+        //             laser.destroy();
+        //             enemy.destroy();
+        //         }    
+        //     })
+        // })
+    
     }
 }

@@ -57,7 +57,7 @@ class SceneTitle extends Phaser.Scene{
         emitter.on("start_game", this.startGame, this)
     }
     update(){
-        this.starfield.tilePositionY += 2;
+        this.starfield.tilePositionY -= 2;
        
 
     }
