@@ -51,7 +51,10 @@ class SceneMain extends Phaser.Scene{
         
 
         this.enemy = new BasicEnemy0({scene:this, x:100, y: 200, screenWidth: game.config.width, screenHeight: game.config.height})
+        //this.enemy = new Enemy(this, 100, 200, 'basicEnemy0')
         this.groupEnemy0.add(this.enemy);
+
+        this.arrayLasers = [];
     }
     update(){
         this.starfield.tilePositionY -= 2;
@@ -61,16 +64,27 @@ class SceneMain extends Phaser.Scene{
             //if(Collision.checkCollide(child,))
         })
 
-        this.groupPlayerLasers.children.iterate(function(child){
-            child.y -= 5;
-            if(child.y <= 10){
-                //child.destroy();
-                //child.setActive(false)
-                //child.setVisible(false)
-                //alert('hello')
-                child
+        for(let i = 0; i < this.arrayLasers.length; i++){
+            this.arrayLasers[i].y -= 5;
+            if(this.arrayLasers[i].y < this.arrayLasers[i].trueZero){
+                this.arrayLasers[i].destroy();
             }
-        })
+        }
+
+        console.log(this.groupPlayerLasers.length)
+        // this.groupPlayerLasers.children.iterate(function(child){
+        //     if(!child.isDone){
+        //         if(child.y <= child.trueZero){
+        //             child.isDone = true;
+
+        //         }else{
+        //             child.y -= 5;
+        //         }
+        //         if(child.isDone)
+        //         child.remove();
+
+        // }
+        // }, this)
         
         this.updateClocks();
         this.boundsCheck();
@@ -129,10 +143,13 @@ class SceneMain extends Phaser.Scene{
     fireWeapon(){
         if(this.clocks.playerFire > 20){
             this.clocks.playerFire = 0;
-            this.playerLaser = this.physics.add.sprite(this.player.x + 15, this.player.y, 'laser');
-            this.playerLaser.angle = this.player.angle;
+            this.playerLaser = new Laser({scene:this, x:this.player.x + 15, y: this.player.y});
 
-            this.groupPlayerLasers.add(this.playerLaser);
+            this.arrayLasers.push(this.playerLaser);
+            //this.playerLaser
+            //this.playerLaser.angle = this.player.angle;
+
+            //this.groupPlayerLasers.add(this.playerLaser);
 
         }
     }

@@ -1,7 +1,10 @@
-class Enemy0 extends Phaser.Physics.Arcade.Sprite {
+class Enemy extends Phaser.Physics.Arcade.Sprite {
     constructor(config){
         super(config)
 
-        destroyEnemy();
+        
+    }
+    destroyEnemy(){
+        this.destroy();
     }
 }
