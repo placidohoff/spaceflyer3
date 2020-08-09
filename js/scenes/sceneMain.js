@@ -267,7 +267,7 @@ class SceneMain extends Phaser.Scene{
         console.log(this.scene)
         x.destroy();
         y.destroy();
-        Phaser.Scene.start('SceneTitle')
+        //Phaser.Scene.start('SceneTitle')
         //SceneMain.scene.start('SceneTitle')
         //this.scene.scene.start('SceneTitle')
         // this.scene.time.addEvent({
