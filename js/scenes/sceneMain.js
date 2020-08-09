@@ -40,6 +40,8 @@ class SceneMain extends Phaser.Scene{
 
         this.groupPlayerLasers = this.physics.add.group();
 
+        
+
         // this.joyStick = this.plugins.get('rexvirtualjoystickplugin');
         
         this.enemyLevel = 0;
@@ -50,11 +52,22 @@ class SceneMain extends Phaser.Scene{
 
         
 
-        this.enemy = new BasicEnemy0({scene:this, x:100, y: 200, screenWidth: game.config.width, screenHeight: game.config.height})
+        //this.enemy = new BasicEnemy0({scene:this, x:100, y: 200, screenWidth: game.config.width, screenHeight: game.config.height})
+        //this.enemy = this.physics.add.sprite(100, 200, 'basicEnemy0')
+        //this.enemy = this.physics.add.sprite(100, 200, 'basicEnemy0')
+        this.enemy = new spriteEnemy0(this, 100, 200, 'basicEnemy0')
+        //this.enemy.setVelocity(50, 0);
         //this.enemy = new Enemy(this, 100, 200, 'basicEnemy0')
         this.groupEnemy0.add(this.enemy);
+        //this.physics.add.collider(this.enemy, this.ground)
 
         this.arrayLasers = [];
+        this.arrayEnemy0 = [];
+        this.arrayEnemy0.push(this.enemy);
+        this.physics.add.collider(this.player, this.groupEnemy0, this.playerHit);
+        this.physics.add.collider(this.groupPlayerLasers, this.groupEnemy0, this.enemyHit);
+        console.log(this.scene);
+        //this.scene.start('SceneTitle')
     }
     update(){
         this.starfield.tilePositionY -= 2;
@@ -71,26 +84,15 @@ class SceneMain extends Phaser.Scene{
             }
         }
 
-        console.log(this.groupPlayerLasers.length)
-        // this.groupPlayerLasers.children.iterate(function(child){
-        //     if(!child.isDone){
-        //         if(child.y <= child.trueZero){
-        //             child.isDone = true;
-
-        //         }else{
-        //             child.y -= 5;
-        //         }
-        //         if(child.isDone)
-        //         child.remove();
-
-        // }
-        // }, this)
+        //console.log(this.groupPlayerLasers.length)
         
         this.updateClocks();
         this.boundsCheck();
         this.spawnEnemy();
         this.fireWeapon();
         this.checkCollisions();
+        
+        //console.log(this.scene)
         //this.updateLasers();
     }
     buttonPressed(params){
@@ -128,11 +130,58 @@ class SceneMain extends Phaser.Scene{
     spawnEnemy(){
         if(this.clocks.enemy0 > this.nextEnemy0){
             //this.lastEnemy = 0;
-            console.log("Hello")
+            //console.log("Hello")
             this.clocks.enemy0 = 0;
+            console.log('spawn');
+
+            this.originNum = Phaser.Math.Between(0, 4);
+            if(this.originNum == 0){
+                this.direction = "Go Right"
+                this.originX = this.player.x - 400;
+                this.originY = this.player.y;
+                this.speedX = Phaser.Math.Between(1, 5)
+                this.speedY = 0;
+            }else if(this.originNum == 1){
+                this.direction = "Go DownRight"
+                this.originX = this.player.x - 400;
+                this.originY = this.player.y - 400;
+                this.speedX = Phaser.Math.Between(1, 5)
+                this.speedY = Phaser.Math.Between(1, 5)
+                
+            }else if(this.originNum == 2){
+                this.direction = "Go Down"
+                this.originX = this.player.x;
+                this.originY = this.player.y - 400;
+                this.speedX = 0;
+                this.speedY = Phaser.Math.Between(1, 5)
+            }else if(this.originNum == 3){
+                this.direction = "Go DownLeft"
+                this.originX = this.player.x + 400;
+                this.originY = this.player.y - 400;
+                this.speedX = Phaser.Math.Between(-5, -1);
+                this.speedY = Phaser.Math.Between(1, 5)
+            }else if(this.originNum == 4){
+                this.direction = "Go Left"
+                this.originX = this.player.x + 400;
+                this.originY = this.player.y;
+                this.speedX = Phaser.Math.Between(-5, -1);
+                this.speedY = Phaser.Math.Between(1, 5)
+
+            }
             
-            return;
+            //console.log(this.direction)
+
+            this.enemy = new spriteEnemy0(this, this.originX, this.originY, 'basicEnemy0')
+            this.enemy.speed.x = this.speedX;
+            this.enemy.speed.y = this.speedY;
+
+            this.groupEnemy0.add(this.enemy);
+            
+            console.log(this.direction)
+
         }
+            
+        
 
     }
     updateClocks(){
@@ -141,11 +190,23 @@ class SceneMain extends Phaser.Scene{
         this.clocks.playerFire++;
     }
     fireWeapon(){
-        if(this.clocks.playerFire > 20){
+        if(this.clocks.playerFire > 50){
             this.clocks.playerFire = 0;
-            this.playerLaser = new Laser({scene:this, x:this.player.x + 15, y: this.player.y});
+            //this.playerLaser = new Laser({scene:this, x:this.player.x + 15, y: this.player.y});
+            //this.playerLaser.setGravityY(-200);
+            this.thisLaser = this.physics.add.sprite(this.player.x, this.player.y, "laser");
+            this.thisLaser.setVelocity(0, -100);
 
-            this.arrayLasers.push(this.playerLaser);
+            this.physics.add.collider(this.thisLaser, this.groupEnemy0, this.enemyHit)
+
+            //Make the laser interactive with all enemy:
+            for(let i = 0; i < this.groupEnemy0.length; i++){
+                this.physics.add.collider(this.thisLaser, this.groupEnemy0, this.contact)
+            }
+
+            //if(this.physics.world.overlap(this.))
+            
+            //this.arrayLasers.push(this.playerLaser);
             //this.playerLaser
             //this.playerLaser.angle = this.player.angle;
 
@@ -154,9 +215,22 @@ class SceneMain extends Phaser.Scene{
         }
     }
     checkCollisions(){
-        this.physics.add.collider(this.groupPlayerLasers, this.groupEnemy0, this.enemyHit);
+        //this.physics.add.collider(this.arrayLasers, this.arrayEnemy0, this.enemyHit);
+        this.physics.add.collider(this.player, this.arrayLasers, this.enemyHit);
+        //if(this.checkCollisions.checkCollide)
+        for(let i = 0; i < this.arrayLasers.length; i++){
+            for(let j = 0; j < this.arrayEnemy0.length; j++){
+                if(Collision.checkCollide(this.arrayLasers[i], this.arrayEnemy0[j])){
+                   // alert('yo');
+                }
+            }
+        }
     }
     enemyHit(x, y){
+        //alert('yo')
+        console.log(x)
+        x.destroy();
+        y.destroy();
         //console.log(x)
         //x.destroy();
         //alert('Yo');
@@ -176,4 +250,37 @@ class SceneMain extends Phaser.Scene{
         // })
     
     }
+    contact(){
+        //alert('hello')
+    }
+    checkCollisions(x,y){
+        //alert('hello')
+        //console.log(x, y)
+        //alert('hello')
+        
+        
+    }
+    playerHit(x,y){
+        //this.scene.scene.restart();
+        //SceneMain.restart();
+        //Phaser.Scene.restart();
+        console.log(this.scene)
+        x.destroy();
+        y.destroy();
+        Phaser.Scene.start('SceneTitle')
+        //SceneMain.scene.start('SceneTitle')
+        //this.scene.scene.start('SceneTitle')
+        // this.scene.time.addEvent({
+        //     delay: 0,
+        //     callback: this.goGameOver,
+        //     callbackScope: this.scene,
+        //     loop: false
+        // },this)
+    }
+
+    goGameOver(){
+        this.scene.start('SceneTitle');
+    }
 }
+
+    
