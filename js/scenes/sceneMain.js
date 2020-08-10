@@ -68,6 +68,8 @@ class SceneMain extends Phaser.Scene{
         this.physics.add.collider(this.groupPlayerLasers, this.groupEnemy0, this.enemyHit);
         console.log(this.scene);
         //this.scene.start('SceneTitle')
+
+        emitter.on("Game_Over", this.goGameOver, this);
     }
     update(){
         this.starfield.tilePositionY -= 2;
@@ -267,6 +269,7 @@ class SceneMain extends Phaser.Scene{
         console.log(this.scene)
         x.destroy();
         y.destroy();
+        emitter.emit("Game_Over");
         //Phaser.Scene.start('SceneTitle')
         //SceneMain.scene.start('SceneTitle')
         //this.scene.scene.start('SceneTitle')
@@ -279,7 +282,7 @@ class SceneMain extends Phaser.Scene{
     }
 
     goGameOver(){
-        this.scene.start('SceneTitle');
+        this.scene.start('SceneMain');
     }
 }
 
