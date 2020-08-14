@@ -61,6 +61,10 @@ class SceneLoad extends Phaser.Scene{
             this.load.image("button2", "assets/ui/ui/buttons/2/2.png");
             
             this.load.image("spaceflyer", "assets/SpaceFlyer.png");
+
+            this.load.spritesheet('basicEnemy', 
+            'assets/basicEnemy.png',
+        { frameWidth: 32, frameHeight: 32 })
         
         //bar;
         // alert('hello');

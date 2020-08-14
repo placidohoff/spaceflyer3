@@ -22,4 +22,8 @@ class BasicEnemy0 extends Phaser.GameObjects.Container{
             this.velocity *= -1;
         }
     }
+
+    killThis(){
+        this.loadTexture('explosion_atlas');
+    }
 }

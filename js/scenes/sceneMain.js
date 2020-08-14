@@ -38,6 +38,13 @@ class SceneMain extends Phaser.Scene{
         this.ability = 'none';
         this.player.isDead = false;
 
+        // this.tweens.add({targets: this.player,
+        //                     duration: 1000,
+        //                     y: game.config.height,
+        //                     angle: 270
+                    
+        //})
+
         this.groupPlayerLasers = this.physics.add.group();
 
         
@@ -55,7 +62,7 @@ class SceneMain extends Phaser.Scene{
         //this.enemy = new BasicEnemy0({scene:this, x:100, y: 200, screenWidth: game.config.width, screenHeight: game.config.height})
         //this.enemy = this.physics.add.sprite(100, 200, 'basicEnemy0')
         //this.enemy = this.physics.add.sprite(100, 200, 'basicEnemy0')
-        this.enemy = new spriteEnemy0(this, 100, 200, 'basicEnemy0')
+        this.enemy = new spriteEnemy0(this, 100, 200, 'basicEnemy')
         //this.enemy.setVelocity(50, 0);
         //this.enemy = new Enemy(this, 100, 200, 'basicEnemy0')
         this.groupEnemy0.add(this.enemy);
@@ -70,6 +77,21 @@ class SceneMain extends Phaser.Scene{
         //this.scene.start('SceneTitle')
 
         emitter.on("Game_Over", this.goGameOver, this);
+        emitter.on("Enemy_Hit", this.animateExplosion, this)
+    
+        this.anims.create({
+            key: 'left',
+            frames: this.anims.generateFrameNumbers('explosion_atlas', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        })
+
+        this.anims.create({
+            key: 'basicExplosion',
+            frames: this.anims.generateFrameNumbers('basicEnemy', { start: 1, end: 9 }),
+            frameRate: 10,
+            repeat: -1
+        })
     }
     update(){
         this.starfield.tilePositionY -= 2;
@@ -173,7 +195,7 @@ class SceneMain extends Phaser.Scene{
             
             //console.log(this.direction)
 
-            this.enemy = new spriteEnemy0(this, this.originX, this.originY, 'basicEnemy0')
+            this.enemy = new spriteEnemy0(this, this.originX, this.originY, 'basicEnemy')
             this.enemy.speed.x = this.speedX;
             this.enemy.speed.y = this.speedY;
 
@@ -228,12 +250,17 @@ class SceneMain extends Phaser.Scene{
             }
         }
     }
-    enemyHit(x, y){
+    enemyHit(laser, enemy){
         //alert('yo')
-        console.log(x)
-        x.destroy();
-        y.destroy();
         //console.log(x)
+        laser.destroy();
+        //enemy.destroy();
+        emitter.emit("Enemy_Hit", enemy, this)
+        // this.scene.tweens.add({targets: enemy,
+        //                         duration: 1000,
+        //                         y: game.config.height,
+        //                         angle: 270})
+        // //console.log(x)
         //x.destroy();
         //alert('Yo');
         //console.log('Hit!')
@@ -269,7 +296,8 @@ class SceneMain extends Phaser.Scene{
         console.log(this.scene)
         x.destroy();
         y.destroy();
-        emitter.emit("Game_Over");
+        //Had to use emiiter in order to pass the context of 'this' to the function:
+            emitter.emit("Game_Over");
         //Phaser.Scene.start('SceneTitle')
         //SceneMain.scene.start('SceneTitle')
         //this.scene.scene.start('SceneTitle')
@@ -283,6 +311,32 @@ class SceneMain extends Phaser.Scene{
 
     goGameOver(){
         this.scene.start('SceneMain');
+    }
+
+    animateExplosion(key){
+        // this.tweens.add({targets: key,
+        //                         duration: 1000,
+        //                         y: game.config.height,
+        //                         angle: 270})
+
+        //key.destroy();
+        //key.killThis();
+        key.anims.play('basicExplosion');
+        key.speed.x = 0;
+        key.speed.y = 0;
+        //key.body.allowGravity = false;
+        key.body.setVelocity(0, 0);
+        //key.allowGravity(false)
+        //key.moves = false;
+        this.time.addEvent({
+            delay: 1000,
+            callback: () => {key.destroy()},
+            callbackScope: this.scene,
+            loop: false
+        })
+        //key.reset(10, 10)
+        //key.body.setVelocity(0,0);
+
     }
 }
 

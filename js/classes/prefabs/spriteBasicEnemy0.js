@@ -10,6 +10,8 @@ class spriteEnemy0 extends Phaser.GameObjects.Sprite {
             x: Phaser.Math.Between(-5, 5),
             y: Phaser.Math.Between(-5, 5),
         }
+
+        //this.isHit = true;
     }
     update(){
         this.x += this.speed.x;
@@ -25,6 +27,10 @@ class spriteEnemy0 extends Phaser.GameObjects.Sprite {
         if(this.y < 0){
             this.speed.y *= -1;
         }
+
+        // if(this.isHit){
+        //     this.body.setVelocity(0,0)
+        // }
         
     }
     // ...
@@ -32,4 +38,7 @@ class spriteEnemy0 extends Phaser.GameObjects.Sprite {
     // preUpdate(time, delta) {
     //     super.preUpdate(time, delta);
     // }
+    killThis(){
+        this.loadTexture('explosion_atlas');
+    }
 }
