@@ -1,19 +1,2 @@
-## ScoreBox ##
-..*We created a custom way to emit events. This documentation after the fact on the implementation of ScoreBox and the subtools needed to get it working properly.
-
-
-## Align Grid ##
-..*This tool is needed because a very common problem is that with different devices, we don't know the game size and this can become problematic when laying out game components/objects.
-..*Layout in a grid can help us 'bootstrap this'.
-
-..*To make the code display be responsive, we made use of "navigator.userAgent" check within main.js, and based on the response from the check, we would load a different 'config' for the game. More documentaion can be found at:
-https://phasergames.com/phaser-3-snippets/phaser-3-starter-snippets/
-
-
-## Text Button ##
-..Quick and easy way to make buttons for our games. Button outline images and we just overlay text onto them
-
-## Media-Manager ##
-..Created a mediaManager util that responds to the emitter constants of PLAY_SOUND, and MUSIC_CHANGED. 
-..Also, in SceneMain, the buttons toggle whether or not the player wants sound working. (This is handled on the SceneMain emitter response function)
-    ..*Added a specific ToggleButton.js for this within 'ui/'
+###Fix Enemy Spawns###
+..*Enemy speeds are not linked together, meaning one enemy gets hit, only that has its speed effected"

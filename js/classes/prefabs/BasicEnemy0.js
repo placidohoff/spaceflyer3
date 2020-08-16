@@ -15,6 +15,7 @@ class BasicEnemy0 extends Phaser.GameObjects.Container{
          this.screenWidth = config.screenWidth;
          this.screenHeight = config.screenHeight;
     
+          
     }
     update(){
         this.x += this.velocity;

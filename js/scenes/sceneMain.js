@@ -1,3 +1,4 @@
+this.player;
 class SceneMain extends Phaser.Scene{
     constructor(){
         super('SceneMain')
@@ -55,6 +56,9 @@ class SceneMain extends Phaser.Scene{
 
 
         this.nextEnemy0 = 50;
+        this.lastEnemyTime = 0;
+        this.enemyTimeRate = 4000;
+
         this.groupEnemy0 = this.physics.add.group();
 
         
@@ -93,26 +97,30 @@ class SceneMain extends Phaser.Scene{
             repeat: -1
         })
     }
-    update(){
+    update(time){
         this.starfield.tilePositionY -= 2;
 
         this.groupEnemy0.children.iterate(function(child){
-            child.update();
+            if(!child.isOffScreen)
+                child.update();
+            else    
+                child.destroy();
             //if(Collision.checkCollide(child,))
         })
 
-        for(let i = 0; i < this.arrayLasers.length; i++){
-            this.arrayLasers[i].y -= 5;
-            if(this.arrayLasers[i].y < this.arrayLasers[i].trueZero){
-                this.arrayLasers[i].destroy();
-            }
-        }
+        // for(let i = 0; i < this.arrayLasers.length; i++){
+        //     this.arrayLasers[i].y -= 5;
+        //     if(this.arrayLasers[i].y < this.arrayLasers[i].trueZero){
+        //         this.arrayLasers[i].destroy();
+        //     }
+        // }
 
         //console.log(this.groupPlayerLasers.length)
         
         this.updateClocks();
         this.boundsCheck();
-        this.spawnEnemy();
+        //if(time > this.lastEnemyTime + this.enemyTimeRate)
+        this.spawnEnemy(time);
         this.fireWeapon();
         this.checkCollisions();
         
@@ -150,8 +158,31 @@ class SceneMain extends Phaser.Scene{
         else if(this.player.y >= game.config.height){
             this.player.y -= 10;
         }
+
+        for(let i = 0; i < this.arrayLasers.length; i++){
+            if(this.arrayLasers[i].y < -10){
+                //console.log('destroy')
+                this.arrayLasers[i].destroy();
+            }
+        }
     }
-    spawnEnemy(){
+    spawnEnemy(time){
+        if(time > this.lastEnemyTime + this.enemyTimeRate){
+            this.lastEnemyTime = time;
+            console.log('spawn')
+
+            this.randomNumber = Phaser.Math.Between(0, 100)
+            this.randomNumber = 80;
+            if(this.randomNumber < 75){
+                this.enemy = new spriteEnemy0(this, 0, 0, 'basicEnemy')
+                this.groupEnemy0.add(this.enemy);
+            }
+            else
+                this.spawnMultipleEnemies('basicEnemy')
+            
+            
+        }
+        /*
         if(this.clocks.enemy0 > this.nextEnemy0){
             //this.lastEnemy = 0;
             //console.log("Hello")
@@ -204,9 +235,75 @@ class SceneMain extends Phaser.Scene{
             console.log(this.direction)
 
         }
-            
+        */
+        
         
 
+    }
+    spawnMultipleEnemies(time){
+        let originalEnemy = new spriteEnemy0(this, 0, 0, 'basicEnemy')
+        this.spacer = 40;
+        if(originalEnemy.origin == "directAbove"){
+            for(let i = 0; i < 3; i++){
+                let newEnemy = new spriteEnemy0(this, 0, 0, 'basicEnemy')
+                newEnemy.speed = {x:0, y:5}//originalEnemy.get('speed');
+                newEnemy.origin = originalEnemy.get('origin');
+                newEnemy.direction = originalEnemy.get('direction');
+                newEnemy.x = originalEnemy.get('x') + this.spacer * i;
+                newEnemy.y = originalEnemy.get('y');
+                console.log(newEnemy.uid)
+                this.groupEnemy0.add(newEnemy)
+            }
+        }
+        else if(originalEnemy.origin == "topLeft"){
+            for(let i = 0; i < 2; i++){
+                let newEnemy = new spriteEnemy0(this, 0, 0, 'basicEnemy')
+                newEnemy.speed = {x: 5, y: 5}//originalEnemy.get('speed');
+                newEnemy.origin = originalEnemy.get('origin');
+                newEnemy.direction = originalEnemy.get('direction');
+                newEnemy.x = originalEnemy.get('x') + this.spacer * i;
+                newEnemy.y = originalEnemy.get('y');
+                console.log(newEnemy.uid)
+                this.groupEnemy0.add(newEnemy)
+            }
+        }
+        else if(originalEnemy.origin == "left"){
+            for(let i = 0; i < 3; i++){
+                let newEnemy = new spriteEnemy0(this, 0, 0, 'basicEnemy')
+                newEnemy.speed = {x:5, y:0}//originalEnemy.get('speed');
+                newEnemy.origin = originalEnemy.get('origin');
+                newEnemy.direction = originalEnemy.get('direction');
+                newEnemy.x = originalEnemy.get('x') //+ this.spacer * i;
+                newEnemy.y = originalEnemy.get('y') + this.spacer * i;
+                console.log(newEnemy.uid)
+                this.groupEnemy0.add(newEnemy)
+            }
+        }
+        else if(originalEnemy.origin == "right"){
+            for(let i = 0; i < 3; i++){
+                let newEnemy = new spriteEnemy0(this, 0, 0, 'basicEnemy')
+                newEnemy.speed = {x: -5, y:0}//originalEnemy.get('speed');
+                newEnemy.origin = originalEnemy.get('origin');
+                newEnemy.direction = originalEnemy.get('direction');
+                newEnemy.x = originalEnemy.get('x') //+ this.spacer * i;
+                newEnemy.y = originalEnemy.get('y') + this.spacer * i;
+                console.log(newEnemy.uid)
+                this.groupEnemy0.add(newEnemy)
+            }
+        }
+        else if(originalEnemy.origin == "topRight"){
+            for(let i = 0; i < 2; i++){
+                let newEnemy = new spriteEnemy0(this, 0, 0, 'basicEnemy')
+                newEnemy.speed = {x: -5, y: 5}//originalEnemy.get('speed');
+                newEnemy.origin = originalEnemy.get('origin');
+                newEnemy.direction = originalEnemy.get('direction');
+                newEnemy.x = originalEnemy.get('x') 
+                + this.spacer * i;
+                newEnemy.y = originalEnemy.get('y') //+ this.spacer * i;
+                console.log(newEnemy.uid)
+                this.groupEnemy0.add(newEnemy)
+            }
+        }
     }
     updateClocks(){
         //this.clock++;
@@ -227,6 +324,8 @@ class SceneMain extends Phaser.Scene{
             for(let i = 0; i < this.groupEnemy0.length; i++){
                 this.physics.add.collider(this.thisLaser, this.groupEnemy0, this.contact)
             }
+
+            this.arrayLasers.push(this.thisLaser)
 
             //if(this.physics.world.overlap(this.))
             
@@ -314,23 +413,28 @@ class SceneMain extends Phaser.Scene{
     }
 
     animateExplosion(key){
-        // this.tweens.add({targets: key,
-        //                         duration: 1000,
-        //                         y: game.config.height,
-        //                         angle: 270})
+        //Find the correct enemy from the gameObjects of enemies:
+        let target;
 
-        //key.destroy();
-        //key.killThis();
-        key.anims.play('basicExplosion');
-        key.speed.x = 0;
-        key.speed.y = 0;
+        this.groupEnemy0.children.iterate(function(child){
+            if(!child.isOffScreen){
+                if(key.uid === child.uid)
+                    target = child
+            }
+            
+        })
+
+        //target.isHit = true;
+        target.anims.play('basicExplosion');
+        target.speed.x = 0;
+        target.speed.y = 0;
         //key.body.allowGravity = false;
-        key.body.setVelocity(0, 0);
+        target.body.setVelocity(0, 0);
         //key.allowGravity(false)
         //key.moves = false;
         this.time.addEvent({
             delay: 1000,
-            callback: () => {key.destroy()},
+            callback: () => {target.destroy()},
             callbackScope: this.scene,
             loop: false
         })
