@@ -65,6 +65,8 @@ class SceneLoad extends Phaser.Scene{
             this.load.spritesheet('basicEnemy', 
             'assets/basicEnemy.png',
         { frameWidth: 32, frameHeight: 32 })
+
+            //this.load.spritesheet('playerExplode')
         
         //bar;
         // alert('hello');

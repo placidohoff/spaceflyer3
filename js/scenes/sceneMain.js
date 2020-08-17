@@ -39,6 +39,12 @@ class SceneMain extends Phaser.Scene{
         this.ability = 'none';
         this.player.isDead = false;
 
+        this.player.speed = {
+            x: 0,
+            y: 0,
+            tch: 240
+        }
+
         // this.tweens.add({targets: this.player,
         //                     duration: 1000,
         //                     y: game.config.height,
@@ -80,6 +86,8 @@ class SceneMain extends Phaser.Scene{
         console.log(this.scene);
         //this.scene.start('SceneTitle')
 
+        this.cursors = this.input.keyboard.createCursorKeys();
+
         emitter.on("Game_Over", this.goGameOver, this);
         emitter.on("Enemy_Hit", this.animateExplosion, this)
     
@@ -108,15 +116,10 @@ class SceneMain extends Phaser.Scene{
             //if(Collision.checkCollide(child,))
         })
 
-        // for(let i = 0; i < this.arrayLasers.length; i++){
-        //     this.arrayLasers[i].y -= 5;
-        //     if(this.arrayLasers[i].y < this.arrayLasers[i].trueZero){
-        //         this.arrayLasers[i].destroy();
-        //     }
-        // }
-
-        //console.log(this.groupPlayerLasers.length)
+        this.player.x += this.player.speed.x;
+        this.player.y += this.player.speed.y;
         
+        this.checkInput();
         this.updateClocks();
         this.boundsCheck();
         //if(time > this.lastEnemyTime + this.enemyTimeRate)
@@ -126,6 +129,30 @@ class SceneMain extends Phaser.Scene{
         
         //console.log(this.scene)
         //this.updateLasers();
+    }
+    checkInput(){
+        if(this.cursors.left.isDown){
+            if(this.cursors.up.isDown){
+                this.player.speed.x = -3
+                this
+            }
+            else{
+                this.player.speed.x = -3;
+                this.player.speed.y = 0;
+            }
+        }
+        else if(this.cursors.up.isDown){
+            this.player.speed.x = 0;
+            this.player.speed.y = -3
+        }
+        else if(this.cursors.right.isDown){
+            this.player.speed.x = 3;
+            this.player.speed.y = 0;
+        }
+        else if(this.cursors.down.isDown){
+            this.player.speed.x = 0;
+            this.player.speed.y = 3;
+        }
     }
     buttonPressed(params){
         model._musicOn ? model._musicOn = false : model._musicOn = true
@@ -138,12 +165,13 @@ class SceneMain extends Phaser.Scene{
         }
     }
     touch(){
-        
+        this.player.speed.x = 0;
+        this.player.speed.y = 0;
        //this.move = this.physics.moveTo(this.ship, this.tx, this.ty, 60)
         console.log(this.tx = this.starfield.input.localX); 
         console.log(this.ty = this.starfield.input.localY);
-        console.log(this.input.activePointer)
-        this.physics.moveTo(this.player, this.input.activePointer.downX, this.input.activePointer.downY, 240)
+        //console.log(this.input.activePointer)
+        this.physics.moveTo(this.player, this.input.activePointer.downX, this.input.activePointer.downY, this.player.speed.tch)
     }
     boundsCheck(){
         if(this.player.x <= 0){
@@ -172,7 +200,7 @@ class SceneMain extends Phaser.Scene{
             console.log('spawn')
 
             this.randomNumber = Phaser.Math.Between(0, 100)
-            this.randomNumber = 80;
+            //this.randomNumber = 80;
             if(this.randomNumber < 75){
                 this.enemy = new spriteEnemy0(this, 0, 0, 'basicEnemy')
                 this.groupEnemy0.add(this.enemy);
@@ -268,7 +296,7 @@ class SceneMain extends Phaser.Scene{
             }
         }
         else if(originalEnemy.origin == "left"){
-            for(let i = 0; i < 3; i++){
+            for(let i = 0; i < 2; i++){
                 let newEnemy = new spriteEnemy0(this, 0, 0, 'basicEnemy')
                 newEnemy.speed = {x:5, y:0}//originalEnemy.get('speed');
                 newEnemy.origin = originalEnemy.get('origin');
@@ -280,7 +308,7 @@ class SceneMain extends Phaser.Scene{
             }
         }
         else if(originalEnemy.origin == "right"){
-            for(let i = 0; i < 3; i++){
+            for(let i = 0; i < 2; i++){
                 let newEnemy = new spriteEnemy0(this, 0, 0, 'basicEnemy')
                 newEnemy.speed = {x: -5, y:0}//originalEnemy.get('speed');
                 newEnemy.origin = originalEnemy.get('origin');
