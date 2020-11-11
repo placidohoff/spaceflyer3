@@ -1,4 +1,60 @@
-this.player;
+class Laser extends Phaser.Physics.Arcade.Sprite
+{
+    constructor(scene, x, y){
+        super(scene, x, y, 'laser')
+    }
+
+    fire(x, y){
+        this.body.reset(x, y);
+
+        this.setActive(true);
+        this.setVisible(true);
+
+        //this.ySpeed = -10;
+
+        this.setVelocityY(-200)
+    }
+
+    preUpdate(time, delta){
+        super.preUpdate(time, delta);
+
+        if(this.y <= -10){
+            this.setActive(false)
+            this.setVisible(false)
+        }
+    }
+
+    update(){
+        //this.y -
+        //this.y += this.ySpeed;
+        // if(this.y < -10)
+            //this.setActive(false)
+    }
+}
+
+class LaserGroup extends Phaser.Physics.Arcade.Group
+{
+    constructor(scene){
+        super(scene.physics.world, scene)
+
+        this.createMultiple({
+            classType: Laser,
+            frameQuantity: 30,
+            active: false,
+            visible: true,
+            key: 'laser'
+        })
+    }
+
+    fireLaser(x, y){
+        const laser = this.getFirstDead(false)
+        if(laser){
+            laser.fire(x, y)
+        }
+    }
+}
+
+// this.player;
 class SceneMain extends Phaser.Scene{
     constructor(){
         super('SceneMain')
@@ -11,27 +67,19 @@ class SceneMain extends Phaser.Scene{
         emitter = new Phaser.Events.EventEmitter();
         controller = new Controller();
 
+        //addBackground()
         this.starfield = this.add.tileSprite(0, 160, game.width, game.height, 'starfield');
         this.starfield.setTilePosition(0,0)
         this.starfield.setInteractive();
-        this.starfield.on('pointerdown', this.touch, this);
 
-        this.clocks = {
-            enemy0: 0,
-            playerFire: 0
-        };
-
+        //addPlayer()
         this.player = this.physics.add.sprite(400, 400, 'ship')
-        //this.player.texture.baseTexture.scaleMode = PIXI.NEAREST;
-        //this.player.scale.set(2);
         this.player.setOrigin(0.5, 0.5);
-        //this.physics.arcade.enable(player);
         this.player.angle -= 90;
         this.player.nextFire = 0;
         this.player.fireRate = 500;
         Align.scaleToGameW(this.player, .1)
-        //this.player.width = 200;
-        //this.player.height = 200;
+        
         this.player.score = 0;
 
         this.player.weapon = 'basic';
@@ -39,24 +87,20 @@ class SceneMain extends Phaser.Scene{
         this.ability = 'none';
         this.player.isDead = false;
 
-        this.player.speed = {
-            x: 0,
-            y: 0,
-            tch: 240
-        }
+        //////DRAGGABLE LOGIC:
+        this.player.setInteractive();
+        this.input.setDraggable(this.player)
+        this.input.on('drag', function(pointer, gameObject, dragX, dragY) {
 
-        // this.tweens.add({targets: this.player,
-        //                     duration: 1000,
-        //                     y: game.config.height,
-        //                     angle: 270
-                    
-        //})
+            gameObject.x = dragX;
+            gameObject.y = dragY;
 
-        this.groupPlayerLasers = this.physics.add.group();
+        })
+
+
+        this.groupPlayerLasers = new LaserGroup(this);
 
         
-
-        // this.joyStick = this.plugins.get('rexvirtualjoystickplugin');
         
         this.enemyLevel = 0;
 
@@ -68,23 +112,14 @@ class SceneMain extends Phaser.Scene{
         this.groupEnemy0 = this.physics.add.group();
 
         
-
-        //this.enemy = new BasicEnemy0({scene:this, x:100, y: 200, screenWidth: game.config.width, screenHeight: game.config.height})
-        //this.enemy = this.physics.add.sprite(100, 200, 'basicEnemy0')
-        //this.enemy = this.physics.add.sprite(100, 200, 'basicEnemy0')
         this.enemy = new spriteEnemy0(this, 100, 200, 'basicEnemy')
-        //this.enemy.setVelocity(50, 0);
-        //this.enemy = new Enemy(this, 100, 200, 'basicEnemy0')
-        this.groupEnemy0.add(this.enemy);
-        //this.physics.add.collider(this.enemy, this.ground)
 
-        this.arrayLasers = [];
-        this.arrayEnemy0 = [];
-        this.arrayEnemy0.push(this.enemy);
+        this.groupEnemy0.add(this.enemy);
+
         this.physics.add.collider(this.player, this.groupEnemy0, this.playerHit);
         this.physics.add.collider(this.groupPlayerLasers, this.groupEnemy0, this.enemyHit);
-        console.log(this.scene);
-        //this.scene.start('SceneTitle')
+
+
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
@@ -104,6 +139,12 @@ class SceneMain extends Phaser.Scene{
             frameRate: 10,
             repeat: -1
         })
+        this.anims.create({
+            key: 'playerExplode',
+            frames: this.anims.generateFrameNumbers('playerExplode', { start: 0, end: 11 }),
+            frameRate: 10,
+            repeat: 0
+        })
     }
     update(time){
         this.starfield.tilePositionY -= 2;
@@ -116,15 +157,15 @@ class SceneMain extends Phaser.Scene{
             //if(Collision.checkCollide(child,))
         })
 
-        this.player.x += this.player.speed.x;
-        this.player.y += this.player.speed.y;
+        // this.player.x += this.player.speed.x;
+        // this.player.y += this.player.speed.y;
         
         this.checkInput();
         this.updateClocks();
         this.boundsCheck();
         //if(time > this.lastEnemyTime + this.enemyTimeRate)
         this.spawnEnemy(time);
-        this.fireWeapon();
+        this.fireWeapon(time);
         this.checkCollisions();
         
         //console.log(this.scene)
@@ -165,13 +206,13 @@ class SceneMain extends Phaser.Scene{
         }
     }
     touch(){
-        this.player.speed.x = 0;
-        this.player.speed.y = 0;
-       //this.move = this.physics.moveTo(this.ship, this.tx, this.ty, 60)
-        console.log(this.tx = this.starfield.input.localX); 
-        console.log(this.ty = this.starfield.input.localY);
-        //console.log(this.input.activePointer)
-        this.physics.moveTo(this.player, this.input.activePointer.downX, this.input.activePointer.downY, this.player.speed.tch)
+    //     this.player.speed.x = 0;
+    //     this.player.speed.y = 0;
+    //    //this.move = this.physics.moveTo(this.ship, this.tx, this.ty, 60)
+    //     console.log(this.tx = this.starfield.input.localX); 
+    //     console.log(this.ty = this.starfield.input.localY);
+    //     //console.log(this.input.activePointer)
+    //     this.physics.moveTo(this.player, this.input.activePointer.downX, this.input.activePointer.downY, this.player.speed.tch)
     }
     boundsCheck(){
         if(this.player.x <= 0){
@@ -187,12 +228,7 @@ class SceneMain extends Phaser.Scene{
             this.player.y -= 10;
         }
 
-        for(let i = 0; i < this.arrayLasers.length; i++){
-            if(this.arrayLasers[i].y < -10){
-                //console.log('destroy')
-                this.arrayLasers[i].destroy();
-            }
-        }
+    
     }
     spawnEnemy(time){
         if(time > this.lastEnemyTime + this.enemyTimeRate){
@@ -335,33 +371,30 @@ class SceneMain extends Phaser.Scene{
     }
     updateClocks(){
         //this.clock++;
-        this.clocks.enemy0++;
-        this.clocks.playerFire++;
+        // this.clocks.enemy0++;
+        // this.clocks.playerFire++;
     }
-    fireWeapon(){
-        if(this.clocks.playerFire > 50){
-            this.clocks.playerFire = 0;
-            //this.playerLaser = new Laser({scene:this, x:this.player.x + 15, y: this.player.y});
-            //this.playerLaser.setGravityY(-200);
-            this.thisLaser = this.physics.add.sprite(this.player.x, this.player.y, "laser");
-            this.thisLaser.setVelocity(0, -100);
+    fireWeapon(time){
+        if(time > this.player.nextFire + this.player.fireRate){
+            //console.log(time, "NOW")
+            this.player.nextFire = time;
 
-            this.physics.add.collider(this.thisLaser, this.groupEnemy0, this.enemyHit)
-
-            //Make the laser interactive with all enemy:
-            for(let i = 0; i < this.groupEnemy0.length; i++){
-                this.physics.add.collider(this.thisLaser, this.groupEnemy0, this.contact)
-            }
-
-            this.arrayLasers.push(this.thisLaser)
-
-            //if(this.physics.world.overlap(this.))
+            this.groupPlayerLasers.fireLaser(this.player.x, this.player.y - 20);
             
-            //this.arrayLasers.push(this.playerLaser);
-            //this.playerLaser
-            //this.playerLaser.angle = this.player.angle;
+            // this.thisLaser = this.physics.add.sprite(this.player.x, this.player.y, "laser");
+            
 
-            //this.groupPlayerLasers.add(this.playerLaser);
+            // this.physics.add.collider(this.thisLaser, this.groupEnemy0, this.enemyHit)
+
+            // //Make the laser interactive with all enemy:
+            // for(let i = 0; i < this.groupEnemy0.length; i++){
+            //     this.physics.add.collider(this.thisLaser, this.groupEnemy0, this.contact)
+            // }
+
+            
+
+            // this.groupPlayerLasers.add(this.thisLaser)
+            
 
         }
     }
@@ -383,27 +416,7 @@ class SceneMain extends Phaser.Scene{
         laser.destroy();
         //enemy.destroy();
         emitter.emit("Enemy_Hit", enemy, this)
-        // this.scene.tweens.add({targets: enemy,
-        //                         duration: 1000,
-        //                         y: game.config.height,
-        //                         angle: 270})
-        // //console.log(x)
-        //x.destroy();
-        //alert('Yo');
-        //console.log('Hit!')
-
-        //Itterate through each child of eneyGroup and check which one is collided. Destroy that one.
         
-
-        // this.groupPlayerLasers.children.iterate(function(laser){
-            
-        //     this.groupEnemy0.children.iterate(function(enemy){
-        //         if(Collision.checkCollide(laser, enemy)){
-        //             laser.destroy();
-        //             enemy.destroy();
-        //         }    
-        //     })
-        // })
     
     }
     contact(){
@@ -417,27 +430,32 @@ class SceneMain extends Phaser.Scene{
         
     }
     playerHit(x,y){
-        //this.scene.scene.restart();
-        //SceneMain.restart();
-        //Phaser.Scene.restart();
+        
         console.log(this.scene)
-        x.destroy();
-        y.destroy();
+        //x.destroy();
+        //y.destroy();
+
+        //x.on('animationcomplete', this.test, this);
+         //x.anims.play('playerExplode')
+         //this.physics.pause()
+        // x.on('animationcomplete-playerExplode', this.test, this);
+        //x.destroy();
+
         //Had to use emiiter in order to pass the context of 'this' to the function:
             emitter.emit("Game_Over");
-        //Phaser.Scene.start('SceneTitle')
-        //SceneMain.scene.start('SceneTitle')
-        //this.scene.scene.start('SceneTitle')
-        // this.scene.time.addEvent({
-        //     delay: 0,
-        //     callback: this.goGameOver,
-        //     callbackScope: this.scene,
-        //     loop: false
-        // },this)
+        
+    }
+
+    test(){
+        alert('hello')
     }
 
     goGameOver(){
-        this.scene.start('SceneMain');
+        // this.player.on('animationcomplete-playerExplode', this.test, this);
+
+        this.player.anims.play('playerExplode')
+        //this.physics.pause();
+        //this.scene.start('SceneMain');
     }
 
     animateExplosion(key){

@@ -53,7 +53,7 @@ class SceneTitle extends Phaser.Scene{
         // this.title.stroke = '#000000';
         // this.title.strokeThickness = 6;
         // this.title.fill = 'purple';
-        //this.scene.start('SceneMain');
+        this.scene.start('SceneMain');
         emitter.on("start_game", this.startGame, this)
     }
     update(){
