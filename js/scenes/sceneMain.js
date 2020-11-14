@@ -1,3 +1,5 @@
+//import Test from './classes/Test.js'
+
 class Laser extends Phaser.Physics.Arcade.Sprite
 {
     constructor(scene, x, y){
@@ -12,23 +14,25 @@ class Laser extends Phaser.Physics.Arcade.Sprite
 
         //this.ySpeed = -10;
 
-        this.setVelocityY(-200)
+        this.setVelocityY(-400)
+
+        
     }
 
-    preUpdate(time, delta){
-        super.preUpdate(time, delta);
+    // preUpdate(time, delta){
+    //     super.preUpdate(time, delta);
 
-        if(this.y <= -10){
-            this.setActive(false)
-            this.setVisible(false)
-        }
-    }
+    //     if(this.y <= -5){
+    //         this.setActive(false)
+    //         this.setVisible(false)
+    //     }
+    // }
 
     update(){
         //this.y -
         //this.y += this.ySpeed;
-        // if(this.y < -10)
-            //this.setActive(false)
+        if(this.y <= -2)
+            this.setActive(false)
     }
 }
 
@@ -41,7 +45,7 @@ class LaserGroup extends Phaser.Physics.Arcade.Group
             classType: Laser,
             frameQuantity: 30,
             active: false,
-            visible: true,
+            visible: false,
             key: 'laser'
         })
     }
@@ -53,6 +57,176 @@ class LaserGroup extends Phaser.Physics.Arcade.Group
         }
     }
 }
+
+class BasicEnemyGroup extends Phaser.Physics.Arcade.Group
+{
+    constructor(scene){
+        super(scene.physics.world, scene)
+
+        this.createMultiple({
+            classType: BasicEnemy,
+            frameQuantity: 30,
+            active: false,
+            visible: false,
+            key: 'basicEnemy'
+        })
+    }
+
+    spawn(x, y){
+        const enemy = this.getFirstDead(false)
+        if(enemy){
+            enemy.init(x, y)
+        }
+    }
+
+    spawnMultiple(){
+
+    }
+}
+
+
+class BasicEnemy extends Phaser.Physics.Arcade.Sprite
+{
+    constructor(scene, x, y){
+        super(scene, x, y, 'basicEnemy')
+    }
+
+    init(x,y){
+        
+        // this.setActive(true);
+        // this.setVisible(true);
+
+        //console.log("spawn")
+
+        this.body.reset(this.x, this.y);
+
+        this.setActive(true);
+        this.setVisible(true);
+
+        this.uid = Phaser.Math.Between(0, 20000)
+
+        this.isHit = false;
+
+        this.speed = {x:0, y:0}
+        
+
+        this.randomOriginNum = Phaser.Math.Between(0, 5)
+
+        if(this.randomOriginNum == 0){
+            this.origin = "directAbove";
+        }else if(this.randomOriginNum == 1){
+                this.origin = "topLeft";
+        }
+        else if(this.randomOriginNum == 2){
+                this.origin = "left";
+        }
+        else if(this.randomOriginNum == 3){
+                this.origin = "right";
+        }
+        else if(this.randomOriginNum == 4){
+                this.origin = "topRight";
+        }
+
+
+        //this.origin = "directAbove"
+        if(this.origin == "directAbove"){
+            this.x = x;
+            this.y = -50;
+            this.speed.x = 0;
+            this.speed.y = 5;
+            this.setVelocityY(100)
+            this.direction = "down"
+        }else if(this.origin == "topLeft"){
+            this.x = x - 1500;
+            this.y = y -1500;
+            this.speed.x = 5;
+            this.speed.y = 5;
+            this.direction = "downRight"
+        }else if(this.origin == "left"){
+             this.x = x - 1500;
+             this.y = y;
+             this.speed.x = 5;
+             this.speed.y = 0;
+             this.direction = "right"
+         }else if(this.origin == "right"){
+             this.x = x + 1500;
+             this.y = y;
+             this.speed.x = -5;
+             this.speed.y = 0;
+             this.direction = "left"
+         }else if(this.origin == "topRight"){
+             this.x = x + 1500;
+             this.y = y - 1500;
+             this.speed.x = -5;
+             this.speed.y = 5;
+             this.direction = "downLeft"
+         }
+
+
+        this.body.reset(this.x, this.y);
+
+        this.setActive(true);
+        this.setVisible(true);
+
+    }
+
+
+    update(){
+        this.x += this.speed.x
+        this.y += this.speed.y;
+
+        if(this.direction == "down"){
+            if(this.y > screen.height){
+                this.setActive(false)
+                this.setVisible(false)
+            }
+        }
+        if(this.direction == "downRight"){
+            if(this.y > screen.height){
+                this.setActive(false)
+                this.setVisible(false)
+            }
+        }
+        if(this.direction == "right"){
+            if(this.x > screen.width +10){
+                this.setActive(false)
+                this.setVisible(false)
+            }
+        }
+        if(this.direction == "upRight"){
+            if(this.x > screen.width +10){
+                this.setActive(false)
+                this.setVisible(false)
+            }
+        }
+        if(this.direction == "up"){
+            if(this.y < -10){
+                this.setActive(false)
+                this.setVisible(false)
+            }
+        }
+        if(this.direction == "upLeft"){
+            if(this.y < -10){
+                this.setActive(false)
+                this.setVisible(false)
+            }
+        }
+        if(this.direction == "left"){
+            if(this.x < -10){
+                this.setActive(false)
+                this.setVisible(false)
+            }
+        }
+        if(this.direction == "downLeft"){
+            if(this.x < -10){
+                this.setActive(false)
+                this.setVisible(false)
+            }
+        }
+    }
+}
+
+
 
 // this.player;
 class SceneMain extends Phaser.Scene{
@@ -86,6 +260,7 @@ class SceneMain extends Phaser.Scene{
         this.fireRate = 500;
         this.ability = 'none';
         this.player.isDead = false;
+        this.player.isHit = false;
 
         //////DRAGGABLE LOGIC:
         this.player.setInteractive();
@@ -99,7 +274,7 @@ class SceneMain extends Phaser.Scene{
 
 
         this.groupPlayerLasers = new LaserGroup(this);
-
+        this.groupBasicEnemies = new BasicEnemyGroup(this)
         
         
         this.enemyLevel = 0;
@@ -107,17 +282,12 @@ class SceneMain extends Phaser.Scene{
 
         this.nextEnemy0 = 50;
         this.lastEnemyTime = 0;
-        this.enemyTimeRate = 4000;
+        this.enemyTimeRate = 2000;
 
-        this.groupEnemy0 = this.physics.add.group();
 
-        
-        this.enemy = new spriteEnemy0(this, 100, 200, 'basicEnemy')
 
-        this.groupEnemy0.add(this.enemy);
-
-        this.physics.add.collider(this.player, this.groupEnemy0, this.playerHit);
-        this.physics.add.collider(this.groupPlayerLasers, this.groupEnemy0, this.enemyHit);
+        this.physics.add.collider(this.player, this.groupBasicEnemies, this.playerHit);
+        this.physics.add.collider(this.groupPlayerLasers, this.groupBasicEnemies, this.enemyHit);
 
 
 
@@ -149,12 +319,10 @@ class SceneMain extends Phaser.Scene{
     update(time){
         this.starfield.tilePositionY -= 2;
 
-        this.groupEnemy0.children.iterate(function(child){
-            if(!child.isOffScreen)
+
+        this.groupBasicEnemies.children.iterate(function(child){
+            if(child.active)
                 child.update();
-            else    
-                child.destroy();
-            //if(Collision.checkCollide(child,))
         })
 
         // this.player.x += this.player.speed.x;
@@ -165,11 +333,17 @@ class SceneMain extends Phaser.Scene{
         this.boundsCheck();
         //if(time > this.lastEnemyTime + this.enemyTimeRate)
         this.spawnEnemy(time);
+        //this
         this.fireWeapon(time);
         this.checkCollisions();
         
         //console.log(this.scene)
-        //this.updateLasers();
+        this.updateLasers();
+    }
+    updateLasers(){
+        this.groupPlayerLasers.children.each(function(laser){
+            laser.update();
+        })
     }
     checkInput(){
         if(this.cursors.left.isDown){
@@ -233,16 +407,18 @@ class SceneMain extends Phaser.Scene{
     spawnEnemy(time){
         if(time > this.lastEnemyTime + this.enemyTimeRate){
             this.lastEnemyTime = time;
-            console.log('spawn')
 
-            this.randomNumber = Phaser.Math.Between(0, 100)
-            //this.randomNumber = 80;
-            if(this.randomNumber < 75){
-                this.enemy = new spriteEnemy0(this, 0, 0, 'basicEnemy')
-                this.groupEnemy0.add(this.enemy);
-            }
-            else
-                this.spawnMultipleEnemies('basicEnemy')
+
+            this.groupBasicEnemies.spawn(this.player.x, this.player.y)
+
+            // this.randomNumber = Phaser.Math.Between(0, 100)
+
+            // if(this.randomNumber < 75){
+            //     this.enemy = new spriteEnemy0(this, 0, 0, 'basicEnemy')
+            //     this.groupEnemy0.add(this.enemy);
+            // }
+            // else
+            //     this.spawnMultipleEnemies('basicEnemy')
             
             
         }
@@ -379,7 +555,25 @@ class SceneMain extends Phaser.Scene{
             //console.log(time, "NOW")
             this.player.nextFire = time;
 
-            this.groupPlayerLasers.fireLaser(this.player.x, this.player.y - 20);
+            if(!this.player.isHit){
+                
+                this.groupPlayerLasers.fireLaser(this.player.x, this.player.y - 20);
+
+                // let laser = this.groupPlayerLasers.getFirstDead(false)
+                
+                //     if(laser){
+                //         //laser.fire(this.player.x, this.player.y - 20)
+                //         laser = new Laser(this, 0, 0)
+                //         laser.fire(this.player.x, this.player.y - 20)
+                        
+                //     }
+
+                    // const laser = new Laser(this, this.player.x, this.player.y - 20, 'laser')
+                    // //console.log(laser)
+                    // laser.setVelocityY(-400)
+                    // this.groupPlayerLasers.add(laser)
+                }
+                
             
             // this.thisLaser = this.physics.add.sprite(this.player.x, this.player.y, "laser");
             
@@ -413,7 +607,9 @@ class SceneMain extends Phaser.Scene{
     enemyHit(laser, enemy){
         //alert('yo')
         //console.log(x)
-        laser.destroy();
+        //laser.destroy();
+        laser.setVisible(false)
+        laser.setActive(false)
         //enemy.destroy();
         emitter.emit("Enemy_Hit", enemy, this)
         
@@ -431,7 +627,7 @@ class SceneMain extends Phaser.Scene{
     }
     playerHit(x,y){
         
-        console.log(this.scene)
+        //console.log(this.scene)
         //x.destroy();
         //y.destroy();
 
@@ -454,6 +650,8 @@ class SceneMain extends Phaser.Scene{
         // this.player.on('animationcomplete-playerExplode', this.test, this);
 
         this.player.anims.play('playerExplode')
+        this.player.isHit = true
+        this.player.body.enable = false
         //this.physics.pause();
         //this.scene.start('SceneMain');
     }
@@ -462,8 +660,8 @@ class SceneMain extends Phaser.Scene{
         //Find the correct enemy from the gameObjects of enemies:
         let target;
 
-        this.groupEnemy0.children.iterate(function(child){
-            if(!child.isOffScreen){
+        this.groupBasicEnemies.children.iterate(function(child){
+            if(child.active){
                 if(key.uid === child.uid)
                     target = child
             }
@@ -471,11 +669,13 @@ class SceneMain extends Phaser.Scene{
         })
 
         //target.isHit = true;
+        if(target){
         target.anims.play('basicExplosion');
         target.speed.x = 0;
         target.speed.y = 0;
         //key.body.allowGravity = false;
         target.body.setVelocity(0, 0);
+        target.body.enable = false
         //key.allowGravity(false)
         //key.moves = false;
         this.time.addEvent({
@@ -486,6 +686,7 @@ class SceneMain extends Phaser.Scene{
         })
         //key.reset(10, 10)
         //key.body.setVelocity(0,0);
+    }
 
     }
 }

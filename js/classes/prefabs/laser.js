@@ -1,4 +1,4 @@
-class Laser extends Phaser.GameObjects.Container{
+class LaserX extends Phaser.GameObjects.Container{
     constructor(config){
          super(config.scene);
          this.scene = config.scene;
