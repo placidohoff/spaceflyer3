@@ -4,9 +4,11 @@ class Laser extends Phaser.Physics.Arcade.Sprite
 {
     constructor(scene, x, y){
         super(scene, x, y, 'laser')
+        //this.body.enable(false)
     }
 
     fire(x, y){
+        this.isLive = true
         this.body.reset(x, y);
 
         this.setActive(true);
@@ -46,7 +48,9 @@ class LaserGroup extends Phaser.Physics.Arcade.Group
             frameQuantity: 30,
             active: false,
             visible: false,
-            key: 'laser'
+            key: 'laser',
+            x: 2600,
+            y: 2600
         })
     }
 
@@ -68,7 +72,10 @@ class BasicEnemyGroup extends Phaser.Physics.Arcade.Group
             frameQuantity: 30,
             active: false,
             visible: false,
-            key: 'basicEnemy'
+            enable:false,
+            key: 'basicEnemy',
+            x: -500,
+            y: -500
         })
     }
 
@@ -89,6 +96,7 @@ class BasicEnemy extends Phaser.Physics.Arcade.Sprite
 {
     constructor(scene, x, y){
         super(scene, x, y, 'basicEnemy')
+        //this.body.enable(false)
     }
 
     init(x,y){
@@ -102,12 +110,15 @@ class BasicEnemy extends Phaser.Physics.Arcade.Sprite
 
         this.setActive(true);
         this.setVisible(true);
+        this.isLive = true
 
         this.uid = Phaser.Math.Between(0, 20000)
 
         this.isHit = false;
 
         this.speed = {x:0, y:0}
+
+        this.score = 1
         
 
         this.randomOriginNum = Phaser.Math.Between(0, 5)
@@ -245,32 +256,35 @@ class SceneMain extends Phaser.Scene{
         this.starfield = this.add.tileSprite(0, 160, game.width, game.height, 'starfield');
         this.starfield.setTilePosition(0,0)
         this.starfield.setInteractive();
+        this.spawnPlayer({x: screen.width/2, y: screen.height - 200})
+        //this.starfield.on('pointerdown', this.playerRespawn, this)
 
         //addPlayer()
-        this.player = this.physics.add.sprite(400, 400, 'ship')
-        this.player.setOrigin(0.5, 0.5);
-        this.player.angle -= 90;
-        this.player.nextFire = 0;
-        this.player.fireRate = 500;
-        Align.scaleToGameW(this.player, .1)
+        // this.player = this.physics.add.sprite(400, 400, 'ship')
+        // this.player.setOrigin(0.5, 0.5);
+        // this.player.angle -= 90;
+        // this.player.nextFire = 0;
+        // this.player.fireRate = 500;
+        // Align.scaleToGameW(this.player, .1)
         
-        this.player.score = 0;
+        // this.player.score = 0;
 
-        this.player.weapon = 'basic';
-        this.fireRate = 500;
-        this.ability = 'none';
-        this.player.isDead = false;
-        this.player.isHit = false;
+        // this.player.weapon = 'basic';
+        // this.fireRate = 500;
+        // this.ability = 'none';
+        // this.player.isDead = false;
+        // this.player.isHit = false;
+        // this.player.isWaitingToRespawn = false;
 
-        //////DRAGGABLE LOGIC:
-        this.player.setInteractive();
-        this.input.setDraggable(this.player)
-        this.input.on('drag', function(pointer, gameObject, dragX, dragY) {
+        // //////DRAGGABLE LOGIC:
+        // this.player.setInteractive();
+        // this.input.setDraggable(this.player)
+        // this.input.on('drag', function(pointer, gameObject, dragX, dragY) {
 
-            gameObject.x = dragX;
-            gameObject.y = dragY;
+        //     gameObject.x = dragX;
+        //     gameObject.y = dragY;
 
-        })
+        // })
 
 
         this.groupPlayerLasers = new LaserGroup(this);
@@ -295,7 +309,9 @@ class SceneMain extends Phaser.Scene{
 
         emitter.on("Game_Over", this.goGameOver, this);
         emitter.on("Enemy_Hit", this.animateExplosion, this)
-    
+        emitter.on("Respawn", this.respawnPlayer, this);
+        emitter.on("Handle_Player_Hit", this.handlePlayerHit, this);
+
         this.anims.create({
             key: 'left',
             frames: this.anims.generateFrameNumbers('explosion_atlas', { start: 0, end: 3 }),
@@ -315,6 +331,20 @@ class SceneMain extends Phaser.Scene{
             frameRate: 10,
             repeat: 0
         })
+
+        this.score = 2;
+        this.scoreText = this.add.text(10,10, `score: ${this.score}`)
+        this.lives = 3;
+        this.playerLives = [];
+        for(let i = 0; i < this.lives; i++){
+            this.playerLives[i] = this.add.sprite(25 + i*20, this.scoreText.y + this.scoreText.height+10, 'ship')
+            // this.playerLives[i].width = 10;
+            // this.playerLives[i].height = 10;
+            this.playerLives[i].angle -= 90;
+            this.playerLives[i].displayWidth *= .8
+            this.playerLives[i].scaleY = this.playerLives[i].scaleX;
+        }
+        this.isGameOver=false
     }
     update(time){
         this.starfield.tilePositionY -= 2;
@@ -339,6 +369,102 @@ class SceneMain extends Phaser.Scene{
         
         //console.log(this.scene)
         this.updateLasers();
+    }
+    spawnPlayer(endPoint){
+        if(!endPoint){
+            endPoint={x:screen.width/2, y: screen.height-200}
+            this.respawnText.text='';
+        }
+        this.player = this.physics.add.sprite(endPoint.x, screen.height + 50, 'ship')
+        this.player.setOrigin(0.5, 0.5);
+        this.player.angle -= 90;
+        this.player.nextFire = 0;
+        this.player.fireRate = 500;
+        Align.scaleToGameW(this.player, .1)
+        
+        this.player.weapon = 'basic';
+        this.fireRate = 500;
+        this.ability = 'none';
+        this.player.isDead = false;
+        this.player.isHit = false;
+        this.player.isWaitingToRespawn = false;
+
+        //////DRAGGABLE LOGIC:
+        this.player.setInteractive();
+        this.input.setDraggable(this.player)
+        this.input.on('drag', function(pointer, gameObject, dragX, dragY) {
+
+            gameObject.x = dragX;
+            gameObject.y = dragY;
+
+        })
+
+        this.physics.add.collider(this.player, this.groupBasicEnemies, this.playerHit);
+
+        
+        this.tweens.add({
+            targets: this.player,
+            y: endPoint.y,
+            duration: 500,
+            ease: 'Linear',
+            //completeDelay: 3000
+        });
+
+    }
+    playerRespawn(){
+        //console.log('respawn')
+        if(this.player.isWaitingToRespawn){
+            //this.physics.moveTo(this.player, this.input.activePointer.downX, this.input.activePointer.downY, this.player.speed.tch)
+            console.log(this.input.activePointer.downX)
+            console.log("HELLO")
+        }else{
+            
+        }
+    }
+    handlePlayerHit(){
+        this.player.anims.play('playerExplode')
+        this.player.isHit = true
+        this.player.body.enable = false
+        this.player.isWaitingToRespawn = true;
+
+
+        this.lives--;
+        if(this.lives >= 0){
+            
+
+            //this.add.tween(this.playerLives).to( { alpha: 0 }, 1000, Phaser.Easing.Linear.None, true, 0, 1000, true);
+            this.tweens.add({
+                targets: this.playerLives[this.lives],
+                alpha: 0,
+                duration: 2000,
+                ease: 'Linear',
+                //completeDelay: 3000
+            });
+            //this.autoSpawn = this.time.addEvent(5000, this.spawnPlayer({x:screen.width/2, y: 200}), this)
+            this.autoSpawn = this.time.delayedCall(5000, this.spawnPlayer, {x:100, y:100}, this)
+            this.respawnText = this.add.text(screen.width/2, screen.height/2, "Tap to Respawn", {fontSize: '28px', color: '#DC1'})
+            this.respawnText.setOrigin(0.5, 0.5);
+            this.respawnPoint;
+            //if(this.player.isWaitingToRespawn){
+                this.starfield.on('pointerdown', function(pointer){
+                    if(this.player.isWaitingToRespawn && !this.isGameOver){
+                        // console.log(pointer.x)
+                        //this.time.events.remove(this.autoSpawn)
+                        this.autoSpawn.remove()
+                        this.respawnText.text=''
+                        this.respawnPoint = pointer;
+                        this.player.isWaitingToRespawn = false
+                        this.spawnPlayer(this.respawnPoint)
+                    }
+                },this)
+            //}
+
+
+            //this.respawnText.fontSize: '20px'
+        }else{
+            this.isGameOver=true
+            this.respawnText.text="Game Over"
+        }
     }
     updateLasers(){
         this.groupPlayerLasers.children.each(function(laser){
@@ -608,11 +734,16 @@ class SceneMain extends Phaser.Scene{
         //alert('yo')
         //console.log(x)
         //laser.destroy();
-        laser.setVisible(false)
-        laser.setActive(false)
-        //enemy.destroy();
-        emitter.emit("Enemy_Hit", enemy, this)
-        
+        if(laser.isLive && enemy.isLive){
+            laser.setVisible(false)
+            laser.setActive(false)
+            //enemy.setVisible(false)
+            //enemy.setActive(false)
+            //this.score += enemy.score
+            //console.log(this.score)
+            //enemy.destroy();
+            emitter.emit("Enemy_Hit", enemy, this)
+        }
     
     }
     contact(){
@@ -627,19 +758,19 @@ class SceneMain extends Phaser.Scene{
     }
     playerHit(x,y){
         
-        //console.log(this.scene)
-        //x.destroy();
-        //y.destroy();
+        // this.lives--;
+        // if(this.lives >= 0)
+        //     emitter.emit("Respawn")
+        // else{
+            emitter.emit("Handle_Player_Hit");
+        //}
 
-        //x.on('animationcomplete', this.test, this);
-         //x.anims.play('playerExplode')
-         //this.physics.pause()
-        // x.on('animationcomplete-playerExplode', this.test, this);
-        //x.destroy();
+        //Have to use emiiter in order to pass the context of 'this' to the function:
 
-        //Had to use emiiter in order to pass the context of 'this' to the function:
-            emitter.emit("Game_Over");
         
+    }
+    respawnPlayer(){
+
     }
 
     test(){
@@ -670,17 +801,21 @@ class SceneMain extends Phaser.Scene{
 
         //target.isHit = true;
         if(target){
+        this.score += target.score
+        this.scoreText.text = `score: ${this.score}`
         target.anims.play('basicExplosion');
         target.speed.x = 0;
         target.speed.y = 0;
         //key.body.allowGravity = false;
         target.body.setVelocity(0, 0);
         target.body.enable = false
+        //target.setActive(false)
+        //target.setVisible(false)
         //key.allowGravity(false)
         //key.moves = false;
         this.time.addEvent({
             delay: 1000,
-            callback: () => {target.destroy()},
+            callback: () => {target.destroy();target.setActive(false); target.setVisible(false)},
             callbackScope: this.scene,
             loop: false
         })
