@@ -26,7 +26,7 @@ class SceneLoad extends Phaser.Scene{
             this.load.image('ship', 'assets/thrust.png');
             this.load.image('starfield', 'assets/starfield.jpg');
             this.load.image('laser', 'assets/laser.png', 13, 22);
-            this.load.image('enemylaser', 'assets/enemylaser1.png', 13, 22);
+            this.load.image('enemyLaser', 'assets/enemylaser1.png', 13, 22);
 
             //thisr sprite;
             this.load.image('basicEnemy0', 'assets/spritesheets/enemy/basicenemy0.png');

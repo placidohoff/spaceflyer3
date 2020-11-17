@@ -237,6 +237,179 @@ class BasicEnemy extends Phaser.Physics.Arcade.Sprite
     }
 }
 
+class UfoEnemyGroup extends Phaser.Physics.Arcade.Group{
+    constructor(scene){
+        super(scene.physics.world, scene)
+
+        this.createMultiple({
+            classType: UfoEnemy,
+            frameQuantity: 30,
+            active: false,
+            visible: false,
+            //enable: false,
+            key: 'ufo',
+            //x: -500,
+            //y: -500
+        })
+    }
+    spawn(){
+        let howMany = Phaser.Math.Between(0,5)
+        for(let i = 0; i < howMany; i++){
+            const ufo = this.getFirstDead(false)
+            if(ufo){
+                ufo.init()
+            }
+        }
+        // const ufo = this.getFirstDead(false)
+        // if(ufo){
+        //     ufo.init()
+        // }
+    }
+}
+
+class UfoEnemy extends Phaser.Physics.Arcade.Sprite{
+    constructor(scene){
+        //super(scene);
+        super(scene, -10, -10, 'ufo')
+        this.scene=scene
+ 
+    }
+    init(){
+        let x = Phaser.Math.Between(0, screen.width)
+        this.body.reset(x, -50);
+
+        this.setActive(true);
+        this.setVisible(true);
+        this.isReady = false;
+        this.direction = '';
+        this.isReverse = false;
+        this.speedX = Phaser.Math.Between(2,9)
+        if(this.speedX >= 5){
+            this.isReverse = Phaser.Math.Between(0,100)
+            if(this.isReverse >= 70)
+                this.isReverse = true;
+            else
+                this.isReverse = false;
+        }
+        this.fireRate = 1000;
+        this.nextFire = 0;
+            
+        //this.groupUfoLasers = new UfoLasersGroup(this.scene);
+        
+        this.tween = this.scene.tweens.add({
+            targets: this,
+            y: 200,
+            // alpha: { start: 0, to: 1 },
+            // alpha: 1,
+            // alpha: '+=1',
+            ease: 'Linear',       // 'Cubic', 'Elastic', 'Bounce', 'Back'
+            duration: 500,
+            
+        })
+        this.tween.on('complete', function(){
+            //console.log('ready')
+            if(this.x < this.scene.player.x){
+                this.direction = "right"
+                //this.speedX = 5;
+            }
+            else if(this.x > this.scene.player.x){
+                this.direction = "left"
+                this.speedX *= -1;
+            }
+            else{
+                this.direction = "left"
+                this.isReverse = true;
+                this.speedX *= -1;
+            }
+            this.isReady = true;
+            //console.log(this.scene.player.xs)
+        }, this);
+        
+
+        
+    }
+    update(time){
+        if(this.isReady){
+            this.x += this.speedX;
+
+            if(this.isReverse){
+                if(this.x <= 0 || this.x >= screen.width){
+                    this.speedX *= -1;
+                    this.isReverse = false;
+                }
+            }
+
+            if(this.x < -10 || this.x > screen.width + 10){
+                this.setActive(false);
+                this.setVisible(false);
+
+            }
+
+            if(time > this.nextFire + this.fireRate){
+                //console.log(time, "NOW")
+                this.nextFire = time;
+                this.scene.groupUfoLasers.shoot(this.x, this.y)
+                //console.log("fire")
+            }
+        }
+    }
+}
+
+class UfoLasersGroup extends Phaser.Physics.Arcade.Group{
+    constructor(scene){
+        super(scene.physics.world, scene)
+
+        this.createMultiple({
+            classType: UfoLaser,
+            frameQuantity: 50,
+            active: false,
+            visible: false,
+            //enable: false,
+            key: 'enemyLaser',
+            //x: -500,
+            //y: -500
+        })
+    }
+    shoot(x,y){
+        const laser = this.getFirstDead(false)
+            if(laser){
+                laser.fire(x,y)
+            }
+    }
+}
+
+class UfoLaser extends Phaser.Physics.Arcade.Sprite{
+    constructor(scene, x, y){
+        super(scene, x, y, 'enemyLaser')
+        //this.body.enable(false)
+    }
+
+    fire(x, y){
+        //this.isLive = true
+        this.isLive = true;
+        this.body.reset(x, y);
+
+        this.setActive(true);
+        this.setVisible(true);
+
+        //this.ySpeed = -10;
+
+        this.setVelocityY(400)
+
+        
+    }
+
+    
+
+    update(){
+        //this.y -
+        //this.y += this.ySpeed;
+        if(this.y >= screen.height + 10){
+            this.setActive(false)
+            this.setVisible(false)
+        }
+    }
+}
 
 
 // this.player;
@@ -257,39 +430,14 @@ class SceneMain extends Phaser.Scene{
         this.starfield.setTilePosition(0,0)
         this.starfield.setInteractive();
         this.spawnPlayer({x: screen.width/2, y: screen.height - 200})
-        //this.starfield.on('pointerdown', this.playerRespawn, this)
-
-        //addPlayer()
-        // this.player = this.physics.add.sprite(400, 400, 'ship')
-        // this.player.setOrigin(0.5, 0.5);
-        // this.player.angle -= 90;
-        // this.player.nextFire = 0;
-        // this.player.fireRate = 500;
-        // Align.scaleToGameW(this.player, .1)
         
-        // this.player.score = 0;
-
-        // this.player.weapon = 'basic';
-        // this.fireRate = 500;
-        // this.ability = 'none';
-        // this.player.isDead = false;
-        // this.player.isHit = false;
-        // this.player.isWaitingToRespawn = false;
-
-        // //////DRAGGABLE LOGIC:
-        // this.player.setInteractive();
-        // this.input.setDraggable(this.player)
-        // this.input.on('drag', function(pointer, gameObject, dragX, dragY) {
-
-        //     gameObject.x = dragX;
-        //     gameObject.y = dragY;
-
-        // })
-
-
         this.groupPlayerLasers = new LaserGroup(this);
         this.groupBasicEnemies = new BasicEnemyGroup(this)
-        
+        this.groupUfoEnemies = new UfoEnemyGroup(this)
+
+        this.groupUfoLasers = new UfoLasersGroup(this);
+
+
         
         this.enemyLevel = 0;
 
@@ -297,12 +445,15 @@ class SceneMain extends Phaser.Scene{
         this.nextEnemy0 = 50;
         this.lastEnemyTime = 0;
         this.enemyTimeRate = 2000;
+        
+        this.ufoTimeRate = 5000;
 
 
 
         this.physics.add.collider(this.player, this.groupBasicEnemies, this.playerHit);
         this.physics.add.collider(this.groupPlayerLasers, this.groupBasicEnemies, this.enemyHit);
 
+        
 
 
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -353,6 +504,16 @@ class SceneMain extends Phaser.Scene{
         this.groupBasicEnemies.children.iterate(function(child){
             if(child.active)
                 child.update();
+        })
+
+        this.groupUfoEnemies.children.iterate(function(child){
+            if(child.active)
+                child.update(time);
+        })
+
+        this.groupUfoLasers.children.iterate(function(child){
+            if(child.active)
+                child.update(time);
         })
 
         // this.player.x += this.player.speed.x;
@@ -531,77 +692,25 @@ class SceneMain extends Phaser.Scene{
     
     }
     spawnEnemy(time){
-        if(time > this.lastEnemyTime + this.enemyTimeRate){
-            this.lastEnemyTime = time;
+        let whichEnemy = Phaser.Math.Between(0, 100);
+        whichEnemy = 80;
+        if(whichEnemy < 75){
+            if(time > this.lastEnemyTime + this.enemyTimeRate){
+                this.lastEnemyTime = time;
 
 
-            this.groupBasicEnemies.spawn(this.player.x, this.player.y)
-
-            // this.randomNumber = Phaser.Math.Between(0, 100)
-
-            // if(this.randomNumber < 75){
-            //     this.enemy = new spriteEnemy0(this, 0, 0, 'basicEnemy')
-            //     this.groupEnemy0.add(this.enemy);
-            // }
-            // else
-            //     this.spawnMultipleEnemies('basicEnemy')
-            
-            
-        }
-        /*
-        if(this.clocks.enemy0 > this.nextEnemy0){
-            //this.lastEnemy = 0;
-            //console.log("Hello")
-            this.clocks.enemy0 = 0;
-            console.log('spawn');
-
-            this.originNum = Phaser.Math.Between(0, 4);
-            if(this.originNum == 0){
-                this.direction = "Go Right"
-                this.originX = this.player.x - 400;
-                this.originY = this.player.y;
-                this.speedX = Phaser.Math.Between(1, 5)
-                this.speedY = 0;
-            }else if(this.originNum == 1){
-                this.direction = "Go DownRight"
-                this.originX = this.player.x - 400;
-                this.originY = this.player.y - 400;
-                this.speedX = Phaser.Math.Between(1, 5)
-                this.speedY = Phaser.Math.Between(1, 5)
+                this.groupBasicEnemies.spawn(this.player.x, this.player.y)           
                 
-            }else if(this.originNum == 2){
-                this.direction = "Go Down"
-                this.originX = this.player.x;
-                this.originY = this.player.y - 400;
-                this.speedX = 0;
-                this.speedY = Phaser.Math.Between(1, 5)
-            }else if(this.originNum == 3){
-                this.direction = "Go DownLeft"
-                this.originX = this.player.x + 400;
-                this.originY = this.player.y - 400;
-                this.speedX = Phaser.Math.Between(-5, -1);
-                this.speedY = Phaser.Math.Between(1, 5)
-            }else if(this.originNum == 4){
-                this.direction = "Go Left"
-                this.originX = this.player.x + 400;
-                this.originY = this.player.y;
-                this.speedX = Phaser.Math.Between(-5, -1);
-                this.speedY = Phaser.Math.Between(1, 5)
-
             }
-            
-            //console.log(this.direction)
-
-            this.enemy = new spriteEnemy0(this, this.originX, this.originY, 'basicEnemy')
-            this.enemy.speed.x = this.speedX;
-            this.enemy.speed.y = this.speedY;
-
-            this.groupEnemy0.add(this.enemy);
-            
-            console.log(this.direction)
-
         }
-        */
+        else{
+            if(time > this.lastEnemyTime + this.ufoTimeRate){
+                //console.log("spawn")
+                this.lastEnemyTime = time;
+
+                this.groupUfoEnemies.spawn()
+            }
+        }
         
         
 
@@ -683,7 +792,7 @@ class SceneMain extends Phaser.Scene{
 
             if(!this.player.isHit){
                 
-                this.groupPlayerLasers.fireLaser(this.player.x, this.player.y - 20);
+                this.groupPlayerLasers.fireLaser(this.player.x, this.player.y - 20, 'player');
 
                 // let laser = this.groupPlayerLasers.getFirstDead(false)
                 
