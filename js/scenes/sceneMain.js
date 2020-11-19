@@ -119,6 +119,8 @@ class BasicEnemy extends Phaser.Physics.Arcade.Sprite
         this.speed = {x:0, y:0}
 
         this.score = 1
+
+        this.key="basicEnemy"
         
 
         this.randomOriginNum = Phaser.Math.Between(0, 5)
@@ -253,7 +255,7 @@ class UfoEnemyGroup extends Phaser.Physics.Arcade.Group{
         })
     }
     spawn(){
-        let howMany = Phaser.Math.Between(0,5)
+        let howMany = Phaser.Math.Between(0,4)
         for(let i = 0; i < howMany; i++){
             const ufo = this.getFirstDead(false)
             if(ufo){
@@ -291,8 +293,13 @@ class UfoEnemy extends Phaser.Physics.Arcade.Sprite{
             else
                 this.isReverse = false;
         }
-        this.fireRate = 1000;
+        this.fireRate = Phaser.Math.Between(500, 2000);
         this.nextFire = 0;
+
+        this.uid = Phaser.Math.Between(0, 20000)
+        this.key = "ufo"
+        this.isLive = true
+
             
         //this.groupUfoLasers = new UfoLasersGroup(this.scene);
         
@@ -433,8 +440,8 @@ class SceneMain extends Phaser.Scene{
         
         this.groupPlayerLasers = new LaserGroup(this);
         this.groupBasicEnemies = new BasicEnemyGroup(this)
+        
         this.groupUfoEnemies = new UfoEnemyGroup(this)
-
         this.groupUfoLasers = new UfoLasersGroup(this);
 
 
@@ -444,15 +451,24 @@ class SceneMain extends Phaser.Scene{
 
         this.nextEnemy0 = 50;
         this.lastEnemyTime = 0;
-        this.enemyTimeRate = 2000;
+        this.enemyTimeRate = 1500;
         
-        this.ufoTimeRate = 5000;
+        this.ufoTimeRate = 1500;
 
 
 
-        this.physics.add.collider(this.player, this.groupBasicEnemies, this.playerHit);
+        this.addCollisions()
+        //Player's lasers hitting enemies:
         this.physics.add.collider(this.groupPlayerLasers, this.groupBasicEnemies, this.enemyHit);
+        this.physics.add.collider(this.groupPlayerLasers, this.groupUfoEnemies, this.enemyHit);
 
+
+        // //Player gets hit:
+        // this.physics.add.collider(this.player, this.groupBasicEnemies, this.playerHit);
+        // this.physics.add.collider(this.player, this.groupUfoEnemies, this.playerHit);
+        // this.physics.add.collider(this.player, this.groupUfoLasers, this.playerHit);
+        
+        
         
 
 
@@ -531,6 +547,14 @@ class SceneMain extends Phaser.Scene{
         //console.log(this.scene)
         this.updateLasers();
     }
+    addCollisions(){
+
+        //Player gets hit:
+        this.physics.add.collider(this.player, this.groupBasicEnemies, this.playerHit);
+        this.physics.add.collider(this.player, this.groupUfoEnemies, this.playerHit);
+        this.physics.add.collider(this.player, this.groupUfoLasers, this.playerHit);
+
+    }
     spawnPlayer(endPoint){
         if(!endPoint){
             endPoint={x:screen.width/2, y: screen.height-200}
@@ -560,8 +584,8 @@ class SceneMain extends Phaser.Scene{
 
         })
 
-        this.physics.add.collider(this.player, this.groupBasicEnemies, this.playerHit);
-
+        //this.physics.add.collider(this.player, this.groupBasicEnemies, this.playerHit);
+        this.addCollisions();
         
         this.tweens.add({
             targets: this.player,
@@ -693,7 +717,7 @@ class SceneMain extends Phaser.Scene{
     }
     spawnEnemy(time){
         let whichEnemy = Phaser.Math.Between(0, 100);
-        whichEnemy = 80;
+        //whichEnemy = 8;
         if(whichEnemy < 75){
             if(time > this.lastEnemyTime + this.enemyTimeRate){
                 this.lastEnemyTime = time;
@@ -843,7 +867,9 @@ class SceneMain extends Phaser.Scene{
         //alert('yo')
         //console.log(x)
         //laser.destroy();
+        //console.log("Hit Detected")
         if(laser.isLive && enemy.isLive){
+            console.log("Hit Detected")
             laser.setVisible(false)
             laser.setActive(false)
             //enemy.setVisible(false)
@@ -899,37 +925,56 @@ class SceneMain extends Phaser.Scene{
     animateExplosion(key){
         //Find the correct enemy from the gameObjects of enemies:
         let target;
+        console.log("Hit Detected")
 
-        this.groupBasicEnemies.children.iterate(function(child){
-            if(child.active){
-                if(key.uid === child.uid)
-                    target = child
-            }
-            
-        })
+        if(key.key =='basicEnemy'){
+            this.groupBasicEnemies.children.iterate(function(child){
+                if(child.active){
+                    if(key.uid === child.uid)
+                        target = child
+                }
+                
+            })
+        } 
+        else if(key.key == 'ufo'){
+            this.groupUfoEnemies.children.iterate(function(child){
+                if(child.active){
+                    if(key.uid === child.uid)
+
+                        target = child
+                }
+                
+            })
+        } 
 
         //target.isHit = true;
         if(target){
-        this.score += target.score
-        this.scoreText.text = `score: ${this.score}`
-        target.anims.play('basicExplosion');
-        target.speed.x = 0;
-        target.speed.y = 0;
-        //key.body.allowGravity = false;
-        target.body.setVelocity(0, 0);
-        target.body.enable = false
-        //target.setActive(false)
-        //target.setVisible(false)
-        //key.allowGravity(false)
-        //key.moves = false;
-        this.time.addEvent({
-            delay: 1000,
-            callback: () => {target.destroy();target.setActive(false); target.setVisible(false)},
-            callbackScope: this.scene,
-            loop: false
-        })
-        //key.reset(10, 10)
-        //key.body.setVelocity(0,0);
+            this.score += target.score
+            this.scoreText.text = `score: ${this.score}`
+            target.anims.play('basicExplosion');
+            if(target.key=="basicEnemy"){
+                target.speed.x = 0;
+                target.speed.y = 0;
+            }
+            if(target.key=="ufo"){
+                target.speedX = 0;
+                //target.speed.y = 0;
+            }
+            //key.body.allowGravity = false;
+            target.body.setVelocity(0, 0);
+            target.body.enable = false
+            //target.setActive(false)
+            //target.setVisible(false)
+            //key.allowGravity(false)
+            //key.moves = false;
+            this.time.addEvent({
+                delay: 1000,
+                callback: () => {target.destroy();target.setActive(false); target.setVisible(false)},
+                callbackScope: this.scene,
+                loop: false
+            })
+            //key.reset(10, 10)
+            //key.body.setVelocity(0,0);
     }
 
     }
