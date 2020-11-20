@@ -769,14 +769,14 @@ class SceneMain extends Phaser.Scene{
         this.player.isWaitingToRespawn = false;
 
         //////DRAGGABLE LOGIC:
-        // this.player.setInteractive();
-        // this.input.setDraggable(this.player)
-        // this.input.on('drag', function(pointer, gameObject, dragX, dragY) {
+        this.player.setInteractive();
+        this.input.setDraggable(this.player)
+        this.input.on('drag', function(pointer, gameObject, dragX, dragY) {
 
-        //     gameObject.x = dragX;
-        //     gameObject.y = dragY;
+            gameObject.x = dragX;
+            gameObject.y = dragY;
 
-        // })
+        })
 
         //this.physics.add.collider(this.player, this.groupBasicEnemies, this.playerHit);
         this.addCollisions();
