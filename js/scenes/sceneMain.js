@@ -549,7 +549,10 @@ class SceneMain extends Phaser.Scene{
         this.starfield.setInteractive();
 
         this.spawnPlayer({x: screen.width/2, y: screen.height - 200})
-        
+        //this.arrowMover = this.physics.add.sprite(this.player.x, this.player.y + this.player.height + 10 , 'arrowmover')
+
+
+
         this.groupPlayerLasers = new LaserGroup(this);
         
         this.groupBasicEnemies = new BasicEnemyGroup(this)
@@ -636,9 +639,11 @@ class SceneMain extends Phaser.Scene{
             this.playerLives[i].scaleY = this.playerLives[i].scaleX;
         }
         this.isGameOver=false
+        
     }
     update(time){
-        this.starfield.tilePositionY -= 2;
+        if(!this.isGameOver)
+            this.starfield.tilePositionY -= 2;
 
 
         this.groupBasicEnemies.children.iterate(function(child){
@@ -669,7 +674,8 @@ class SceneMain extends Phaser.Scene{
         this.boundsCheck();
         //if(time > this.lastEnemyTime + this.enemyTimeRate)
         this.spawnEnemy(time);
-        this.dropPowerUp(time);
+        if(!this.isGameOver)
+            this.dropPowerUp(time);
         //this
         this.fireWeapon(time);
         this.checkCollisions();
@@ -763,25 +769,68 @@ class SceneMain extends Phaser.Scene{
         this.player.isWaitingToRespawn = false;
 
         //////DRAGGABLE LOGIC:
-        this.player.setInteractive();
-        this.input.setDraggable(this.player)
-        this.input.on('drag', function(pointer, gameObject, dragX, dragY) {
+        // this.player.setInteractive();
+        // this.input.setDraggable(this.player)
+        // this.input.on('drag', function(pointer, gameObject, dragX, dragY) {
 
-            gameObject.x = dragX;
-            gameObject.y = dragY;
+        //     gameObject.x = dragX;
+        //     gameObject.y = dragY;
 
-        })
+        // })
 
         //this.physics.add.collider(this.player, this.groupBasicEnemies, this.playerHit);
         this.addCollisions();
+
+        let tweenComplete = false;
         
+        
+        this.arrowMover = this.physics.add.sprite(endPoint.x,  -endPoint.y , 'arrowmover')
+        this.arrowMover.displayWidth *= .25;
+        this.arrowMover.scaleY = this.arrowMover.scaleX;
+
         this.tweens.add({
             targets: this.player,
             y: endPoint.y,
             duration: 500,
             ease: 'Linear',
+            //callbackScope
             //completeDelay: 3000
         });
+
+
+        // this.arrowMover = this.physics.add.sprite(this.player.x, endPoint.y + this.player.height + 10 , 'arrowmover')
+        // this.arrowMover.displayWidth *= .25;
+        // this.arrowMover.scaleY = this.arrowMover.scaleX;
+
+        this.arrowMover.body.reset(this.player.x, endPoint.y + this.player.height + 10)
+        this.tweens.add({
+            targets: this.arrowMover,
+            alpha: { start: 0, to: 1 },
+            duration: 600,
+            ease: 'Power 1',
+            //callbackScope
+            //completeDelay: 3000
+        });
+
+        this.arrowMover.setInteractive();
+        this.input.setDraggable(this.arrowMover)
+        this.input.on('drag', function(pointer, gameObject, dragX, dragY) {
+
+            this.player.x = dragX;
+            this.player.y = dragY - 10 - this.player.height;
+
+        },this)
+
+        
+        //console.log(this.arrowMover.x, '    ',this.arrowMover.y)
+
+        // if(tweenComplete){
+        //     this.arrowMover = this.physics.add.sprite(this.player.x, this.player.y + this.player.height + 10 , 'arrowmover')
+
+        // }
+
+        //ArrowMover:
+
 
     }
     playerRespawn(){
@@ -795,11 +844,21 @@ class SceneMain extends Phaser.Scene{
         }
     }
     handlePlayerHit(){
+        this.arrowMover.destroy();
         this.player.anims.play('playerExplode')
         this.player.isHit = true
         this.player.body.enable = false
         this.player.isWaitingToRespawn = true;
 
+        // this.tweens.add({
+        //     targets: this.arrowMover,
+        //     alpha: 0,
+        //     duration: 1000,
+        //     ease: 'Linear',
+        //     //completeDelay: 3000
+        // });
+        this.arrowMover.destroy();
+        console.log(this.arrowMover)
 
         this.lives--;
         if(this.lives >= 0){
@@ -813,6 +872,7 @@ class SceneMain extends Phaser.Scene{
                 ease: 'Linear',
                 //completeDelay: 3000
             });
+            
             //this.autoSpawn = this.time.addEvent(5000, this.spawnPlayer({x:screen.width/2, y: 200}), this)
             this.autoSpawn = this.time.delayedCall(5000, this.spawnPlayer, {x:100, y:100}, this)
             this.respawnText = this.add.text(screen.width/2, screen.height/2, "Tap to Respawn", {fontSize: '28px', color: '#DC1'})
@@ -906,15 +966,17 @@ class SceneMain extends Phaser.Scene{
     spawnEnemy(time){
         let whichEnemy = Phaser.Math.Between(0, 100);
         //whichEnemy = 8;
-        if(whichEnemy < 75){
-            if(time > this.lastEnemyTime + this.enemyTimeRate){
-                this.lastEnemyTime = time;
+        //if(!this.isGameOver){
+            if(whichEnemy < 75){
+                if(time > this.lastEnemyTime + this.enemyTimeRate){
+                    this.lastEnemyTime = time;
 
-
-                this.groupBasicEnemies.spawn(this.player.x, this.player.y)           
-                
+                    if(!this.isGameOver)
+                        this.groupBasicEnemies.spawn(this.player.x, this.player.y)           
+                    
+                }
             }
-        }
+        //}
         else{
             if(time > this.lastEnemyTime + this.ufoTimeRate){
                 //console.log("spawn")
@@ -1066,7 +1128,8 @@ class SceneMain extends Phaser.Scene{
         this.player.anims.play('playerExplode')
         this.player.isHit = true
         this.player.body.enable = false
-        //this.physics.pause();
+        this.physics.pause();
+        this.isGameOver = true
         //this.scene.start('SceneMain');
     }
 

@@ -72,6 +72,8 @@ class SceneLoad extends Phaser.Scene{
             this.load.spritesheet('coins', 'assets/coins.png',
             {frameWidth: 46, frameHeight: 51})
         
+            this.load.image('arrowmover', 'assets/arrowcross.png')
+
         //bar;
         // alert('hello');
     }
