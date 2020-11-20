@@ -419,6 +419,117 @@ class UfoLaser extends Phaser.Physics.Arcade.Sprite{
 }
 
 
+class CoinsGroup extends Phaser.Physics.Arcade.Group{
+    constructor(scene){
+        super(scene.physics.world, scene)
+
+        this.createMultiple({
+            classType: Coin,
+            frameQuantity: 30,
+            active: false,
+            visible: false,
+            //enable: false,
+            key: 'coins',
+            //x: -500,
+            //y: -500
+        })
+        
+    }
+        dropCoin(x,y){
+        let dropX, dropY;
+        if(x && y){
+            dropX = x; dropY = y
+        }else{
+            dropX = Phaser.Math.Between(0, screen.width)
+            dropY = -200;
+        }
+        
+        const coin = this.getFirstDead(false)
+            if(coin){
+                coin.drop(dropX,dropY)
+            }
+        }
+        dropCoins(){
+            let dropX, dropY;
+            let howMany = Phaser.Math.Between(0,5)
+            for(let i = 0; i < howMany; i++){
+                const coin = this.getFirstDead(false)
+                if(coin){
+                    dropX = Phaser.Math.Between(0, screen.width)
+                    dropY = Phaser.Math.Between(-400, -20)//-200;
+                    coin.drop(dropX, dropY)
+                }
+             }
+        }
+
+}
+
+class Coin extends Phaser.Physics.Arcade.Sprite{
+    constructor(scene, x, y){
+        super(scene, x, y, 'coins')
+        //this.scale()
+
+        // this.displayWidth *= .5;
+        // this.scaleY = this.scaleX;
+        //this.body.enable(false)
+        this.isLive = false;
+    }
+    scale(){
+        // this.displayWidth *= .5;
+        // this.scaleY = this.scaleX;
+    }
+
+    drop(x,y){
+        //this.isLive = true
+        //console.log("dropping")
+        //this.isLive = false;
+        //let x = Phaser.Math.Between(0, screen.width)
+
+        // if(!x && !y){
+        //     let x = Phaser.Math.Between(0, screen.width)
+        //     let y = -200;
+        // }
+        this.uid = Phaser.Math.Between(0, 20000)
+
+
+        this.body.reset(x, y);
+
+        this.setActive(true);
+        this.setVisible(true);
+
+        //this.ySpeed = -10;
+
+        //this.setVelocityY(400)
+        this.speedY = 5;
+
+        if(!this.isLive){
+            this.displayWidth *= .5;
+            this.scaleY = this.scaleX;
+            this.isLive = true
+        }
+
+        
+
+        this.anims.play('coinRotate')
+
+        
+    }
+
+    
+
+    update(){
+        //this.y -
+        this.y += this.speedY;
+        if(this.y >= screen.height + 10){
+            this.setActive(false)
+            this.setVisible(false)
+        }
+    }
+}
+
+
+
+
 // this.player;
 class SceneMain extends Phaser.Scene{
     constructor(){
@@ -436,14 +547,17 @@ class SceneMain extends Phaser.Scene{
         this.starfield = this.add.tileSprite(0, 160, game.width, game.height, 'starfield');
         this.starfield.setTilePosition(0,0)
         this.starfield.setInteractive();
+
         this.spawnPlayer({x: screen.width/2, y: screen.height - 200})
         
         this.groupPlayerLasers = new LaserGroup(this);
+        
         this.groupBasicEnemies = new BasicEnemyGroup(this)
         
         this.groupUfoEnemies = new UfoEnemyGroup(this)
         this.groupUfoLasers = new UfoLasersGroup(this);
 
+        this.groupCoins = new CoinsGroup(this)
 
         
         this.enemyLevel = 0;
@@ -455,6 +569,9 @@ class SceneMain extends Phaser.Scene{
         
         this.ufoTimeRate = 1500;
 
+        this.nextPowerUp = 0;
+        this.lastPowerUp = 0;
+        this.powerUpRate = 5000;
 
 
         this.addCollisions()
@@ -478,6 +595,7 @@ class SceneMain extends Phaser.Scene{
         emitter.on("Enemy_Hit", this.animateExplosion, this)
         emitter.on("Respawn", this.respawnPlayer, this);
         emitter.on("Handle_Player_Hit", this.handlePlayerHit, this);
+        emitter.on("Handle_Collect_Coins", this.collectCoin, this);
 
         this.anims.create({
             key: 'left',
@@ -497,6 +615,12 @@ class SceneMain extends Phaser.Scene{
             frames: this.anims.generateFrameNumbers('playerExplode', { start: 0, end: 11 }),
             frameRate: 10,
             repeat: 0
+        })
+        this.anims.create({
+            key: 'coinRotate',
+            frames: this.anims.generateFrameNumbers('coins', { start: 0, end: 9 }),
+            frameRate: 20,
+            repeat: -1
         })
 
         this.score = 2;
@@ -532,6 +656,11 @@ class SceneMain extends Phaser.Scene{
                 child.update(time);
         })
 
+        this.groupCoins.children.iterate(function(child){
+            if(child.active)
+                child.update(time);
+        })
+
         // this.player.x += this.player.speed.x;
         // this.player.y += this.player.speed.y;
         
@@ -540,6 +669,7 @@ class SceneMain extends Phaser.Scene{
         this.boundsCheck();
         //if(time > this.lastEnemyTime + this.enemyTimeRate)
         this.spawnEnemy(time);
+        this.dropPowerUp(time);
         //this
         this.fireWeapon(time);
         this.checkCollisions();
@@ -547,12 +677,70 @@ class SceneMain extends Phaser.Scene{
         //console.log(this.scene)
         this.updateLasers();
     }
+    collectCoin(coin){
+        //console.log(coin)
+        //Find the correct enemy from the gameObjects of enemies:
+        let correctCoin;
+        //console.log("Hit Detected")
+
+        
+            this.groupCoins.children.iterate(function(child){
+                if(child.active){
+                    if(coin.uid === child.uid)
+                        correctCoin = child
+                }
+                
+            })
+         
+
+
+        //target.isHit = true;
+        if(correctCoin){
+            this.score++;
+            this.scoreText.text = `score: ${this.score}`
+            
+            correctCoin.body.enable = false
+            correctCoin.body.setVelocity(0, 0);
+            
+            correctCoin.destroy();
+            correctCoin.setActive(false); 
+            correctCoin.setVisible(false)
+            
+            // this.time.addEvent({
+            //     delay: 1000,
+            //     callback: () => {target.destroy();target.setActive(false); target.setVisible(false)},
+            //     callbackScope: this.scene,
+            //     loop: false
+            // })
+            
+        }
+    }
+    dropPowerUp(time){
+        if(time > this.lastPowerUp + this.powerUpRate){
+            //console.log(time, "NOW")
+            //console.log("Awaiting drop")
+            this.lastPowerUp = time;
+
+            let howMany = Phaser.Math.Between(0, 100)
+            if(howMany < 50)
+                this.groupCoins.dropCoin();
+            else    
+                this.groupCoins.dropCoins();
+
+                            
+
+        }
+    }
     addCollisions(){
 
         //Player gets hit:
-        this.physics.add.collider(this.player, this.groupBasicEnemies, this.playerHit);
-        this.physics.add.collider(this.player, this.groupUfoEnemies, this.playerHit);
-        this.physics.add.collider(this.player, this.groupUfoLasers, this.playerHit);
+        this.physics.add.collider(this.player, this.groupBasicEnemies,()=> {emitter.emit("Handle_Player_Hit");});
+        this.physics.add.collider(this.player, this.groupUfoEnemies, ()=> {emitter.emit("Handle_Player_Hit");});
+
+        this.physics.add.collider(this.player, this.groupUfoLasers, ()=> {emitter.emit("Handle_Player_Hit");});
+
+        this.physics.add.collider(this.player, this.groupCoins, (x,y)=> {/*emitter.emit("Handle_Collect_Coins");*/this.collectCoin(y)});
+
 
     }
     spawnPlayer(endPoint){
@@ -818,36 +1006,8 @@ class SceneMain extends Phaser.Scene{
                 
                 this.groupPlayerLasers.fireLaser(this.player.x, this.player.y - 20, 'player');
 
-                // let laser = this.groupPlayerLasers.getFirstDead(false)
-                
-                //     if(laser){
-                //         //laser.fire(this.player.x, this.player.y - 20)
-                //         laser = new Laser(this, 0, 0)
-                //         laser.fire(this.player.x, this.player.y - 20)
-                        
-                //     }
-
-                    // const laser = new Laser(this, this.player.x, this.player.y - 20, 'laser')
-                    // //console.log(laser)
-                    // laser.setVelocityY(-400)
-                    // this.groupPlayerLasers.add(laser)
-                }
-                
-            
-            // this.thisLaser = this.physics.add.sprite(this.player.x, this.player.y, "laser");
-            
-
-            // this.physics.add.collider(this.thisLaser, this.groupEnemy0, this.enemyHit)
-
-            // //Make the laser interactive with all enemy:
-            // for(let i = 0; i < this.groupEnemy0.length; i++){
-            //     this.physics.add.collider(this.thisLaser, this.groupEnemy0, this.contact)
-            // }
-
-            
-
-            // this.groupPlayerLasers.add(this.thisLaser)
-            
+            }
+                            
 
         }
     }
@@ -869,7 +1029,7 @@ class SceneMain extends Phaser.Scene{
         //laser.destroy();
         //console.log("Hit Detected")
         if(laser.isLive && enemy.isLive){
-            console.log("Hit Detected")
+            //console.log("Hit Detected")
             laser.setVisible(false)
             laser.setActive(false)
             //enemy.setVisible(false)
@@ -891,19 +1051,7 @@ class SceneMain extends Phaser.Scene{
         
         
     }
-    playerHit(x,y){
-        
-        // this.lives--;
-        // if(this.lives >= 0)
-        //     emitter.emit("Respawn")
-        // else{
-            emitter.emit("Handle_Player_Hit");
-        //}
-
-        //Have to use emiiter in order to pass the context of 'this' to the function:
-
-        
-    }
+    
     respawnPlayer(){
 
     }
@@ -925,7 +1073,7 @@ class SceneMain extends Phaser.Scene{
     animateExplosion(key){
         //Find the correct enemy from the gameObjects of enemies:
         let target;
-        console.log("Hit Detected")
+        //console.log("Hit Detected")
 
         if(key.key =='basicEnemy'){
             this.groupBasicEnemies.children.iterate(function(child){
@@ -949,8 +1097,8 @@ class SceneMain extends Phaser.Scene{
 
         //target.isHit = true;
         if(target){
-            this.score += target.score
-            this.scoreText.text = `score: ${this.score}`
+            //this.score += target.score
+            // this.scoreText.text = `score: ${this.score}`
             target.anims.play('basicExplosion');
             if(target.key=="basicEnemy"){
                 target.speed.x = 0;
@@ -969,13 +1117,35 @@ class SceneMain extends Phaser.Scene{
             //key.moves = false;
             this.time.addEvent({
                 delay: 1000,
-                callback: () => {target.destroy();target.setActive(false); target.setVisible(false)},
+                callback: () => 
+                    {
+                        target.destroy();
+                        target.setActive(false); 
+                        target.setVisible(false)
+                        
+                    
+                    },
                 callbackScope: this.scene,
                 loop: false
             })
+            this.time.addEvent({
+                delay: 500,
+                callback: () => {
+                    let spawnCoin = Phaser.Math.Between(0,100)
+                        //spawnCoin=85
+                    if(spawnCoin > 70){
+                            //console.log(this.groupCoins)
+                        this.groupCoins.dropCoin(target.x, target.y)
+                    }
+                },
+                callbackScope: this.scene,
+                loop: false
+            })
+            
+            
             //key.reset(10, 10)
             //key.body.setVelocity(0,0);
-    }
+        }
 
     }
 }

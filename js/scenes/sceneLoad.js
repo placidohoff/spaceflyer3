@@ -68,6 +68,9 @@ class SceneLoad extends Phaser.Scene{
 
             this.load.spritesheet('playerExplode', 'assets/playerExplosionSheet.png',
             {frameWidth: 58, frameHeight: 51})
+            
+            this.load.spritesheet('coins', 'assets/coins.png',
+            {frameWidth: 46, frameHeight: 51})
         
         //bar;
         // alert('hello');
