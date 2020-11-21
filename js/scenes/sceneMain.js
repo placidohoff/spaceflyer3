@@ -599,6 +599,7 @@ class SceneMain extends Phaser.Scene{
         emitter.on("Respawn", this.respawnPlayer, this);
         emitter.on("Handle_Player_Hit", this.handlePlayerHit, this);
         emitter.on("Handle_Collect_Coins", this.collectCoin, this);
+        emitter.on("start_game", () => {this.scene.start('SceneMain');}, this);
 
         this.anims.create({
             key: 'left',
@@ -642,7 +643,7 @@ class SceneMain extends Phaser.Scene{
         
     }
     update(time){
-        if(!this.isGameOver)
+        //if(!this.isGameOver)
             this.starfield.tilePositionY -= 2;
 
 
@@ -751,7 +752,7 @@ class SceneMain extends Phaser.Scene{
     }
     spawnPlayer(endPoint){
         if(!endPoint){
-            endPoint={x:screen.width/2, y: screen.height-200}
+            endPoint={x:screen.width/2, y: screen.height-300}
             this.respawnText.text='';
         }
         this.player = this.physics.add.sprite(endPoint.x, screen.height + 50, 'ship')
@@ -767,6 +768,8 @@ class SceneMain extends Phaser.Scene{
         this.player.isDead = false;
         this.player.isHit = false;
         this.player.isWaitingToRespawn = false;
+        this.player.isInvulnerable = true;
+        this.player.body.enable = false;
 
         //////DRAGGABLE LOGIC:
         this.player.setInteractive();
@@ -791,11 +794,22 @@ class SceneMain extends Phaser.Scene{
         this.tweens.add({
             targets: this.player,
             y: endPoint.y,
-            duration: 500,
+            duration: 800,
             ease: 'Linear',
+            //callback: () => {this.player.body.enable = true}
             //callbackScope
             //completeDelay: 3000
         });
+        this.time.addEvent({
+            delay: 1200,
+            callback: () => 
+                {
+                    this.player.body.enable = true    
+                
+                },
+            callbackScope: this.scene,
+            loop: false
+        })
 
 
         // this.arrowMover = this.physics.add.sprite(this.player.x, endPoint.y + this.player.height + 10 , 'arrowmover')
@@ -844,6 +858,7 @@ class SceneMain extends Phaser.Scene{
         }
     }
     handlePlayerHit(){
+        //if(!this.player.isInvulnerable){
         this.arrowMover.destroy();
         this.player.anims.play('playerExplode')
         this.player.isHit = true
@@ -897,7 +912,17 @@ class SceneMain extends Phaser.Scene{
         }else{
             this.isGameOver=true
             this.respawnText.text="Game Over"
+
+            this.btnStart = new FlatButton({scene:this, key: 'button2', text:'Play Again', event:'start_game', x:0, y:0})
+
+        this.btnStart.x = screen.width/2;
+        this.btnStart.y = screen.height - 100;
+        console.log(this.btnStart)
+
+        //this.btn = this.physics.add.sprite(200, 500, 'button1')
+
         }
+    //}
     }
     updateLasers(){
         this.groupPlayerLasers.children.each(function(laser){
@@ -1125,11 +1150,22 @@ class SceneMain extends Phaser.Scene{
     goGameOver(){
         // this.player.on('animationcomplete-playerExplode', this.test, this);
 
+        // this.btnStart = new FlatButton({scene:this, key: 'button2', text:'Play Again', event:'start_game', x:0, y:0})
+
+        // this.btnStart.x = screen.width/2;
+        // this.btnStart.y = screen.height - 100;
+        // console.log(this.btnStart)
+
+        this.btn = this.physics.add.sprite(200, 500, 'button1')
+
         this.player.anims.play('playerExplode')
         this.player.isHit = true
         this.player.body.enable = false
         this.physics.pause();
-        this.isGameOver = true
+                //this.btnStart.setOrigin(0.5,0.5);
+        
+
+        //this.isGameOver = true
         //this.scene.start('SceneMain');
     }
 
