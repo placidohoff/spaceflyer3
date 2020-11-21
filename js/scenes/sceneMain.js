@@ -916,7 +916,7 @@ class SceneMain extends Phaser.Scene{
             this.btnStart = new FlatButton({scene:this, key: 'button2', text:'Play Again', event:'start_game', x:0, y:0})
 
         this.btnStart.x = screen.width/2;
-        this.btnStart.y = screen.height - 100;
+        this.btnStart.y = this.respawnText.y + 20;
         console.log(this.btnStart)
 
         //this.btn = this.physics.add.sprite(200, 500, 'button1')
