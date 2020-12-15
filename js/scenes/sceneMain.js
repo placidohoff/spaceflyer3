@@ -930,27 +930,65 @@ class SceneMain extends Phaser.Scene{
         })
     }
     checkInput(){
+        let mv = 4;
         if(this.cursors.left.isDown){
             if(this.cursors.up.isDown){
-                this.player.speed.x = -3
-                this
+                this.player.x -= mv;
+                // this
+                this.player.y -= mv;
+            }
+            else if(this.cursors.down.isDown){
+                this.player.x -= mv;
+                this.player.y += mv;
             }
             else{
-                this.player.speed.x = -3;
-                this.player.speed.y = 0;
+                this.player.x -= mv;
+                // this.player.speed.y = 0;
             }
         }
         else if(this.cursors.up.isDown){
-            this.player.speed.x = 0;
-            this.player.speed.y = -3
+            // this.player.speed.x = 0;
+            //this.player.y -= 2
+            if(this.cursors.left.isDown){
+                this.player.y -= mv;
+                this.player.x -= mv
+            }
+            else if(this.cursors.right.isDown){
+                this.player.y -= mv;
+                this.player.x += mv;
+            }
+            else{
+                this.player.y -= mv;
+            }
         }
         else if(this.cursors.right.isDown){
-            this.player.speed.x = 3;
-            this.player.speed.y = 0;
+            //this.player.x += 2;
+            if(this.cursors.up.isDown){
+                this.player.x += mv;
+                // this
+                this.player.y -= mv;
+            }
+            else if(this.cursors.down.isDown){
+                this.player.x += mv;
+                this.player.y += mv;
+            }
+            else{
+                this.player.x += mv;
+            }
+            // this.player.speed.y = 0;
         }
         else if(this.cursors.down.isDown){
-            this.player.speed.x = 0;
-            this.player.speed.y = 3;
+            if(this.cursors.left.isDown){
+                this.player.y += 3;
+                this.player.x -= 3
+            }
+            else if(this.cursors.right.isDown){
+                this.player.y += 3;
+                this.player.x += 3;
+            }
+            else{
+                this.player.y += 3;
+            }
         }
     }
     buttonPressed(params){
